@@ -8,10 +8,13 @@ pace of the next weekly contribution.
 
 ## The idea
 
-A large cash balance is deployed into diversified public markets on a weekly schedule. The lever is
-*pace*, not participation — contributions continue in every regime, but the size varies with
-measured risk. Slowing below 1.0x accumulates reserve capital for release after a meaningful
-de-extension.
+A large cash balance (~$8M) is deployed into diversified public markets on a weekly schedule at a
+$250,000 baseline. The lever is *pace*, not participation — contributions continue in every regime,
+but the size varies with measured risk. Slowing below 1.0x accumulates reserve capital for release
+after a meaningful de-extension.
+
+The 80% core runs through Schwab Intelligent Portfolios, which holds a mandatory cash slice, so the
+calculator reports an effective multiplier alongside the nominal one.
 
 | Overall score | Regime | Multiplier |
 |---|---|---|
@@ -47,7 +50,7 @@ tools/dca_calc.py                    deterministic score/band/dollar arithmetic
 ```
 python3 tools/dca_calc.py --self-test
 
-python3 tools/dca_calc.py --asof 2026-08-14 \
+python3 tools/dca_calc.py --asof 2026-08-24 \
   --quant 97 --macro 59 --liquidity 15 --sentiment 63 --valuation 89 \
   --quant-conf 84 --macro-conf 80 --liquidity-conf 88 --sentiment-conf 84 --valuation-conf 83
 ```

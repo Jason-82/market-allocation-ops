@@ -33,11 +33,20 @@ WEIGHTS = {
     "valuation": Decimal("0.10"),
 }
 
-WEEKLY_BASELINE = Decimal("312500")
+WEEKLY_BASELINE = Decimal("250000")
+
+# The 2026-08-14 run predates the 2026-08-24 rescale and used a $312,500 baseline.
+# The self-test reconciles against it at its own baseline; do not "fix" this to the
+# current value or the historical reconciliation silently breaks.
+HISTORICAL_BASELINE_2026_08_14 = Decimal("312500")
 CORE_SHARE = Decimal("0.80")
 SLEEVE_SHARE = Decimal("0.20")
 
 CENT = Decimal("0.01")
+
+# Schwab Intelligent Portfolios holds a mandatory cash allocation that cannot be
+# switched off. Jason reports ~7% on an aggressive profile. Only the core is affected.
+ROBO_CASH_FRACTION = Decimal("0.07")
 
 
 def blend(values: dict[str, Decimal]) -> Decimal:
@@ -100,6 +109,18 @@ def contribution_math(mult: Decimal, baseline: Decimal = WEEKLY_BASELINE) -> dic
     }
 
 
+def effective_deployment(
+    total_deploy: Decimal, core_amount: Decimal, robo_cash: Decimal = ROBO_CASH_FRACTION
+) -> dict[str, Decimal]:
+    """Portion of a contribution that actually reaches the market.
+
+    The core sits in Schwab Intelligent Portfolios, which parks a mandatory slice in
+    Schwab Bank Sweep. Reporting the nominal multiplier alone overstates the real pace.
+    """
+    parked = (core_amount * robo_cash).quantize(CENT, rounding=ROUND_HALF_UP)
+    return {"cash_parked_in_core": parked, "market_deploy": total_deploy - parked}
+
+
 def sleeve_lines(sleeve_amount: Decimal, weights: dict[str, Decimal]) -> dict[str, Decimal]:
     """Split the sleeve into per-ticker dollars that sum exactly to sleeve_amount.
 
@@ -117,7 +138,11 @@ def sleeve_lines(sleeve_amount: Decimal, weights: dict[str, Decimal]) -> dict[st
     return lines
 
 
-def compute(scores: dict[str, Decimal], confs: dict[str, Decimal] | None = None) -> dict:
+def compute(
+    scores: dict[str, Decimal],
+    confs: dict[str, Decimal] | None = None,
+    baseline: Decimal = WEEKLY_BASELINE,
+) -> dict:
     overall = blend(scores)
     regime, mult_range = action_band(overall)
     raw = raw_multiplier(overall)
@@ -137,7 +162,9 @@ def compute(scores: dict[str, Decimal], confs: dict[str, Decimal] | None = None)
     if raw is not None:
         op = to_operational(raw)
         out["operational_multiplier"] = op
-        out.update(contribution_math(op))
+        out.update(contribution_math(op, baseline))
+        out.update(effective_deployment(out["total_deploy"], out["core_amount"]))
+        out["effective_multiplier"] = (out["market_deploy"] / baseline).quantize(Decimal("0.0001"))
     return out
 
 
@@ -163,6 +190,13 @@ def render(res: dict, asof: str | None) -> str:
     lines.append(f"  Core (80%): ${res['core_amount']:,}")
     lines.append(f"  Sleeve (20%, manual): ${res['sleeve_amount']:,}")
     lines.append(f"Incremental holdback: ${res['incremental_holdback']:,}")
+    lines.append(
+        f"  less mandatory robo cash ({ROBO_CASH_FRACTION:.0%} of core): ${res['cash_parked_in_core']:,}"
+    )
+    lines.append(
+        f"  reaching the market: ${res['market_deploy']:,}"
+        f"  -> effective multiplier {res['effective_multiplier']}x"
+    )
     lines.append("")
     lines.append(
         "asof,quant,macro,liquidity,sentiment,valuation,overall,regime,raw_mult,op_mult,"
@@ -193,7 +227,7 @@ def self_test() -> int:
     d = Decimal
     scores = {"quant": d(97), "macro": d(59), "liquidity": d(15), "sentiment": d(63), "valuation": d(89)}
     confs = {"quant": d(84), "macro": d(80), "liquidity": d(88), "sentiment": d(84), "valuation": d(83)}
-    res = compute(scores, confs)
+    res = compute(scores, confs, HISTORICAL_BASELINE_2026_08_14)
 
     checks = [
         ("overall_risk_score", res["overall_risk_score"], d("68.8")),
@@ -230,6 +264,19 @@ def self_test() -> int:
     checks.append(("sleeve lines sum", sum(lines.values(), d(0)), res["sleeve_amount"]))
     checks.append(("core+sleeve == deploy", res["core_amount"] + res["sleeve_amount"], res["total_deploy"]))
     checks.append(("deploy+holdback == baseline", res["total_deploy"] + res["incremental_holdback"], d("312500.00")))
+
+    # Current-baseline arithmetic at the same 0.65x, so a rescale regression is caught.
+    cur = compute(scores, confs)
+    checks += [
+        ("current baseline", cur["weekly_baseline"], d("250000.00")),
+        ("current deploy @0.65x", cur["total_deploy"], d("162500.00")),
+        ("current core", cur["core_amount"], d("130000.00")),
+        ("current sleeve", cur["sleeve_amount"], d("32500.00")),
+        ("current holdback", cur["incremental_holdback"], d("87500.00")),
+        ("robo cash parked", cur["cash_parked_in_core"], d("9100.00")),
+        ("market deploy", cur["market_deploy"], d("153400.00")),
+        ("effective mult", cur["effective_multiplier"], d("0.6136")),
+    ]
 
     failed = 0
     for name, got, want in checks:

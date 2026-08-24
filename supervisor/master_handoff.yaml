@@ -39,9 +39,13 @@ user_objective:
 
 portfolio_context:
   planned_market_deployment:
-    approximate_total: 10000000
+    approximate_total: 8000000
+    approximate_total_history:
+      - {value: 10000000, status: "superseded 2026-08-24"}
+      - {value: 8000000, status: "current; supplied by Jason 2026-08-24"}
     original_schedule: "16 investments of approximately $625,000 every two weeks"
-    revised_schedule: "Approximately 32 weekly baseline tranches of $312,500"
+    superseded_schedule: "Approximately 32 weekly baseline tranches of $312,500 against a ~$10,000,000 total"
+    revised_schedule: "Approximately 32 weekly baseline tranches of $250,000 against a ~$8,000,000 total"
     intended_horizon: "Approximately eight months before risk-based pacing and reserve-release adjustments"
     important_caveat: |
       Slowing weekly contributions below 1.0x creates accumulated reserve capital. The exact date of
@@ -57,9 +61,32 @@ portfolio_context:
     core_total_portfolio_weight: 0.80
     sleeve_total_portfolio_weight: 0.20
     core_implementation: |
-      The 80% core is implemented through a Schwab robo-style allocation. Schwab handles the
-      underlying core ETF allocation automatically. The Supervisor normally reports only the dollar
-      amount sent to the core bucket, not individual core ETF orders.
+      The 80% core is implemented through Schwab Intelligent Portfolios, set near its most
+      aggressive profile. Schwab handles the underlying core ETF allocation automatically. The
+      Supervisor normally reports only the dollar amount sent to the core bucket, not individual
+      core ETF orders.
+    core_mandatory_cash:
+      observed_by_jason: 0.07
+      published_band_for_aggressive_profiles: "approximately 0.06 to 0.10"
+      source_status: |
+        Jason reports approximately 7%. The 6-10% aggressive band comes from secondary
+        reporting; schwab.com was not reachable from the Supervisor's environment on
+        2026-08-24, so this is not primary-sourced. Confirm from the account before relying
+        on it for anything beyond disclosure.
+      rule: |
+        Schwab Intelligent Portfolios holds a mandatory cash allocation that cannot be switched
+        off. It is therefore NOT correct to say that the full core amount reaches the market.
+        Every report must state the effective multiplier alongside the nominal one:
+          effective_multiplier = operational_multiplier * (1 - 0.80 * robo_cash_fraction)
+        Do not attempt to gross up the core to compensate; the program rebalances back to its
+        target cash weight.
+    core_composition_note: |
+      Intelligent Portfolios blends market-cap-weighted Schwab ETFs (SCHX, SCHA, SCHF) with
+      fundamentally weighted RAFI ETFs (FNDX, FNDA, FNDF) that weight by revenue, free cash
+      flow, dividends and buybacks. The core therefore already carries a value/anti-momentum
+      tilt. When judging a sleeve tilt, treat that as a partial offset to high Quant extension
+      concentrated in mega-cap growth, and avoid stacking a large additional sleeve value tilt
+      on top of it without saying so.
     sleeve_implementation: "The 20% sleeve is manually allocated by Jason."
 
 strategic_sleeve_targets:
@@ -396,7 +423,15 @@ dca_policy:
       At a score of 80 or higher, the formal action band changes to minimal DCA. Do not extend the
       slow-band formula beyond its domain.
   contribution_math:
-    weekly_baseline: 312500
+    weekly_baseline: 250000
+    weekly_baseline_history:
+      - {value: 312500, effective_through: "2026-08-14 run", basis: "~$10,000,000 over 32 weeks"}
+      - {value: 250000, effective_from: "2026-08-24", basis: "~$8,000,000 over 32 weeks; Jason's instruction"}
+    baseline_change_rule: |
+      Runs recorded before 2026-08-24 used a $312,500 baseline. Never restate a historical
+      run's dollar figures at the current baseline, and never compare a current dollar
+      amount with a pre-2026-08-24 one without noting the baseline change. Multipliers and
+      scores remain comparable across the change; dollars do not.
     formulas:
       total_deploy: "weekly_baseline * operational_multiplier"
       core_amount: "total_deploy * 0.80"

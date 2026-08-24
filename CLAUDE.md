@@ -39,13 +39,21 @@ arithmetic internally. Bands: <35 accelerate (1.25–1.50x), 35–<60 baseline (
 (`0.75 - (score-60)*0.0125`, rounded to nearest 0.05x), ≥80 minimal (0.00–0.25x). Never extend the
 slow-band formula past 80.
 
-Weekly baseline $312,500. Deploy = baseline × operational multiplier; 80% core (Schwab robo, report
-the dollar amount only), 20% manual sleeve; holdback = baseline − deploy.
+Weekly baseline **$250,000** (rescaled 2026-08-24 from $312,500 when the investable total went
+from ~$10M to ~$8M). Deploy = baseline × operational multiplier; 80% core (Schwab Intelligent
+Portfolios, report the dollar amount only), 20% manual sleeve; holdback = baseline − deploy.
+
+The robo parks a mandatory ~7% of the core in sweep cash and it cannot be turned off, so always
+report the **effective** multiplier next to the nominal one:
+`effective = operational × (1 − 0.80 × robo_cash)`. At 0.65x nominal that is 0.6136x effective.
+Never gross the core up to compensate — the program rebalances back to its cash target.
 
 ## Hard rules
 
 - **Never** reconstruct a module score from public proxies. A prior Supervisor did this and produced
   scores inconsistent with the agents.
+- **Never** compare a dollar figure from before 2026-08-24 with one after it without noting the
+  baseline change from $312,500 to $250,000. Multipliers and scores stay comparable; dollars do not.
 - **Never** state cumulative reserve, amount invested to date, remaining balance, current portfolio
   value, or a settled contribution day unless Jason supplied it. These are not inferable from the
   multiplier.
@@ -65,5 +73,6 @@ the dollar amount only), 20% manual sleeve; holdback = baseline − deploy.
 ## Repo conventions
 
 Stdlib-only Python. Run `python3 tools/dca_calc.py --self-test` after touching the calculator; it
-reconciles against the recorded 2026-08-14 run. If a spec value changes in `master_handoff.yaml`,
+reconciles the recorded 2026-08-14 run *at its own $312,500 baseline* and current arithmetic at
+$250,000. Do not "fix" the historical constant to the current value. If a spec value changes in `master_handoff.yaml`,
 update `tools/dca_calc.py` in the same commit — the weights and baseline are duplicated there.
