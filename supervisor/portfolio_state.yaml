@@ -92,12 +92,47 @@ emerging_markets_concentration:
     EBND: 2805.67
   pct_of_invested: 29.03
   pct_of_total_investable: 9.36
-  plan_implied_target_pct_of_total: 11.80
+
+  robo_em_weight_derived:
+    method: "EM equity (FNDE+SCHE+SPEM) / invested assets, per robo account, market-value weighted"
+    trust_1: 16.43
+    trust_2: 15.79
+    roth_ira: 18.87
+    individual: 18.69
+    weighted: 17.33
+    correction: |
+      An earlier version of this file recorded ~11% as the robo's EM weight. That was an
+      ESTIMATE, not derived, and it was wrong. The measured figure is 17.33%. The error
+      inverted the conclusion: EM is not 'roughly on plan', it is materially UNDER its
+      eventual weight and roughly doubles as deployment proceeds.
+
+  projection_at_full_deployment:
+    assumptions: |
+      Total investable 10,788,478; core 80% less 6.77% robo cash; robo EM at the derived
+      17.33% of core invested; DFEV at its revised 2.5% of total; DEMSX held flat in nominal
+      terms. Mechanical projection with no market moves. Not a forecast.
+    robo_em: 1394487.81
+    dfev: 269711.95
+    demsx: 598619.11
+    total_em: 2262818.87
+    total_em_pct_of_investable: 20.97
+    composition_pct_of_em: {robo: 61.6, demsx: 26.5, dfev: 11.9}
+    demsx_share_of_em: "59.3% today -> 26.5% at full deployment, by dilution alone"
+
   interpretation: |
-    EM is roughly ON PLAN at the total level (9.36% against an implied ~11.8% target) but heavily
-    FRONT-LOADED: 29% of what has actually been deployed. It dilutes toward target on its own as
-    the remaining cash goes in. The concentration is in DEMSX, which is 59% of all EM exposure
-    and sits outside the eight-ETF sleeve.
+    EM is FRONT-LOADED today (29% of deployed assets) but UNDER-weight against where the plan
+    takes it: 9.36% of total investable now, 20.97% at full deployment. DEMSX's share of EM
+    falls from 59.3% to 26.5% purely by dilution, with no sale.
+
+    The structural point: the robo drives 61.6% of eventual EM, DFEV only 11.9%. Adjusting DFEV
+    or DEMSX cannot meaningfully steer total EM exposure -- the Schwab risk profile does. And
+    DEMSX's share of EM can only fall by buying more of the other EM sleeves, which RAISES total
+    EM. Lowering DEMSX's share and lowering total EM are opposing goals absent a sale.
+
+    Whether ~21% EM is intended is an open question for Jason. EM is roughly 10% of global
+    equity market cap, so this is about 2x global weight -- defensible as a deliberate tilt
+    given the sleeve's non-US value design and the robo's fundamental weighting, but it is two
+    independent tilts stacking rather than one decision.
 
 demsx_review:
   decision: "Hold. Reduce exposure through contributions only. No sale."
