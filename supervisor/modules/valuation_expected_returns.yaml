@@ -1,0 +1,730 @@
+# MODULE TRANSFER HANDOFF — Valuation / Expected Returns
+#
+# Received from Jason 2026-08-24, completing the five-module intake for this cycle.
+# The Supervisor consumes only latest_state.score and latest_state.confidence.
+
+MODULE_TRANSFER_HANDOFF:
+  module_name: "Valuation / Expected Returns"
+  mission: >-
+    Measure whether U.S. equities, with primary emphasis on the S&P 500/SPY and secondary
+    context for the Nasdaq-100/QQQ, are cheap or expensive relative to their own histories
+    and relative to prevailing interest rates. Convert those readings into a stable
+    ValuationRiskScore from 0 to 100, where higher values indicate richer valuations, lower
+    prospective long-horizon returns, and greater caution when deploying new contributions.
+    Institutional capital-market forecasts are used only as scenario anchors, not as precise
+    predictions.
+
+  boundaries:
+    owns:
+      - "Long-horizon U.S. equity valuation assessment."
+      - "Shiller CAPE, trailing P/E, forward P/E, price/sales, dividend yield, and earnings-yield analysis."
+      - "Rates-aware comparison of the S&P 500 earnings yield with nominal and real Treasury yields."
+      - "Simple nominal ERP proxy and its inverted ERP-tightness scoring convention."
+      - "Market-cap-to-GDP valuation context."
+      - "Nasdaq-100 and QQQ valuation context."
+      - "Institutional 10-year expected-return forecasts and their conversion into a valuation-risk anchor."
+      - "A slow-moving contribution-pacing bias for the Supervisor."
+      - "Data-quality reconciliation when valuation sources use conflicting index-price stamps."
+    does_not_own:
+      - "Price-trend extension, moving averages, quantile risk bands, or other Quant Risk calculations."
+      - "Short-term momentum, breadth, positioning, options sentiment, or technical timing."
+      - "Federal Reserve policy forecasting, recession forecasting, inflation forecasting, or general macro scoring."
+      - "Credit spreads, funding stress, bank liquidity, market plumbing, or Liquidity/Credit scoring."
+      - "Short-term market-top or market-bottom calls."
+      - "Portfolio-wide DCA multiplier selection; this module supplies one input to the Supervisor."
+      - "Tax-lot selection, taxable-sale recommendations, leverage, or derivatives."
+      - "Precise return forecasting; institutional forecasts are scenario anchors only."
+
+  risk_scale:
+    direction: "0=lowest valuation risk and highest prospective returns; 100=highest valuation risk and lowest prospective returns."
+    stability_requirement: >-
+      The scale meaning must remain fixed across updates. Do not redefine 80 from one week to
+      the next, change weights silently, or allow normal weekly market noise to produce large
+      score changes.
+    regime_bands:
+      low_risk: {range: "0-35", meaning: "Historically cheap or unusually attractive long-horizon starting valuation."}
+      neutral: {range: "35-60", meaning: "Broadly normal or mixed valuation with no strong contribution-pacing signal."}
+      high_risk: {range: "60-80", meaning: "Rich valuation and below-normal expected-return context."}
+      extreme: {range: "80-100", meaning: "Very rich or historically extreme valuation with a weak rates-aware return cushion."}
+
+  current_scoring_methodology:
+    formula: >-
+      ValuationRiskScore =
+      0.30 * CAPE_percentile_risk +
+      0.20 * trailing_PE_percentile_risk +
+      0.10 * price_to_sales_percentile_risk +
+      0.25 * ERP_tightness_percentile_risk +
+      0.15 * institutional_10y_forecast_risk.
+      The unrounded weighted result is rounded to the nearest whole number.
+    component_weights:
+      cape_percentile_risk: 0.30
+      trailing_pe_percentile_risk: 0.20
+      price_to_sales_percentile_risk: 0.10
+      erp_tightness_percentile_risk: 0.25
+      institutional_10y_forecast_risk: 0.15
+      total: 1.00
+    normalization:
+      percentile_definition: >-
+        Use one historical observation per calendar year through the prior year, append the
+        current observation once, remove blanks and duplicate current-year rows, and calculate:
+        percentile = 100 * count(observations <= current_value) / N. This is an inclusive
+        empirical percentile. For the scored metrics, higher values always mean higher
+        valuation risk.
+      annual_snapshot_reason: >-
+        The existing score history was calibrated with annual "by-year" observations rather
+        than daily or monthly data. This reduces serial correlation and keeps the score
+        slow-moving, but it also understates intra-year extremes. Do not switch to monthly
+        history without treating it as a methodology revision and backfilling prior scores.
+      scored_metrics:
+        cape:
+          normalization: "Empirical percentile versus one observation per year from 1872 through the present."
+          risk_mapping: "risk=percentile."
+        trailing_pe:
+          normalization: "Empirical percentile versus one observation per year from 1871 through the present."
+          risk_mapping: "risk=percentile."
+        price_to_sales:
+          normalization: >-
+            Empirical percentile versus the earliest consistently available annual source
+            history, currently approximately 2000 through the present. Report the exact first
+            year available on each run if the source table changes.
+          risk_mapping: "risk=percentile."
+        erp_tightness:
+          normalization: "Empirical percentile versus aligned annual earnings-yield and nominal-10Y observations from 2000 through the present."
+          risk_mapping: "risk=percentile because higher tightness is worse."
+        institutional_forecast:
+          normalization: "Piecewise-linear mapping from expected 10-year nominal return to risk, followed by an equal-weight average across usable providers."
+      institutional_forecast_mapping:
+        return_basis: "Nominal annualized expected return over approximately 10 years."
+        interpolation: "Linear interpolation between the following anchor points."
+        anchor_points:
+          - {expected_nominal_return: "8.0% or higher", risk: 10}
+          - {expected_nominal_return: "6.0%", risk: 35}
+          - {expected_nominal_return: "4.0%", risk: 60}
+          - {expected_nominal_return: "2.0%", risk: 80}
+          - {expected_nominal_return: "0.0% or lower", risk: 95}
+        range_rule: >-
+          If a provider publishes a forecast range, show the full range in the report and use
+          the arithmetic midpoint only for the score.
+        real_return_rule: >-
+          Do not mix a provider's real-return forecast directly with nominal forecasts. Convert
+          it to nominal only when that same provider supplies a compatible inflation assumption.
+          Otherwise show the real forecast as context and exclude it from the scored basket.
+        provider_weighting: "Equal weight at the provider-risk level; do not weight a provider more heavily because it publishes more scenarios."
+        minimum_provider_count: >-
+          Prefer at least two current, independently produced forecasts. If only one usable
+          provider remains, retain the 15% component with a neutral risk of 50, disclose the
+          gap, and reduce confidence rather than silently reweighting the other components.
+    thresholds:
+      materially_lower_risk_evidence:
+        - "CAPE at or below 34."
+        - "Trailing S&P 500 P/E at or below approximately 24."
+        - "S&P 500 price/sales at or below 3.0; 2.5 or lower is a stronger normalization signal."
+        - "SPY FY1 or comparable forward P/E at or below 19, used as confirmation rather than a scored trigger."
+        - "Nominal ERP, defined as earnings yield minus 10Y nominal yield, at or above +0.5%; +1.0% is a stronger repair."
+        - "Blended institutional 10-year U.S. large-cap forecast at or above approximately 6.5% nominal."
+      materially_raise_risk_evidence:
+        - "CAPE at or above 45."
+        - "Trailing S&P 500 P/E at or above approximately 35."
+        - "S&P 500 price/sales at or above 4.0."
+        - "Nominal ERP at or below -1.5%, equivalent to ERP tightness at or above +1.5%."
+        - "Blended institutional 10-year U.S. large-cap forecast at or below approximately 3.5% nominal."
+        - "QQQ forward P/E at or above approximately 30 is an additional warning, but remains contextual unless the methodology is revised."
+      interpretation_rule: >-
+        Thresholds are change-my-mind markers, not manual score overrides. The official score
+        must still be generated from the weighted percentile formula. Because several current
+        components are already near 100, worsening valuation may change the score by only a
+        few points.
+    methodology_history:
+      - period: "2026-01 initial implementation"
+        change: >-
+          Established the durable five-component framework: CAPE 30%, trailing P/E 20%,
+          price/sales 10%, ERP tightness 25%, and institutional forecasts 15%.
+          Market-cap-to-GDP, forward P/E, and QQQ valuation were kept contextual, not scored.
+      - period: "2026-01-12 temporary treatment"
+        change: >-
+          One update converted nominal institutional forecasts to approximate real returns
+          using a shared 2.4% inflation assumption. This created unnecessary model dependence
+          and false precision.
+      - period: "2026-02 onward"
+        change: >-
+          Standardized institutional-forecast scoring on nominal returns using the fixed
+          nominal mapping above. This is the current methodology and should remain in force
+          unless Jason explicitly approves a revision.
+      - period: "2026-03 through 2026-06"
+        change: >-
+          Improved rate-source hierarchy by preferring Federal Reserve H.15, FRED, or Treasury
+          data and explicitly reporting rate dates. Component weights and percentile logic did
+          not change.
+      - period: "2026-08"
+        change: >-
+          Added an explicit official-close reconciliation rule when an aggregator's embedded
+          S&P 500 price stamp conflicts with the official S&P Dow Jones Indices close. This was
+          a data-quality correction, not a score-methodology change.
+    score_history:
+      - {asof: "2026-01-05 close", score: 86}
+      - {asof: "2026-01-12 close", score: 88}
+      - {asof: "2026-02-12 close", score: 86}
+      - {asof: "2026-03-05 close", score: 85}
+      - {asof: "2026-06-26 close", score: 90}
+      - {asof: "2026-08-14 close", score: 89}
+
+  data_pipeline:
+    primary_sources:
+      - {source: "S&P Dow Jones Indices", use: "Official S&P 500 closing level and index facts; authoritative when another source embeds a conflicting SPX price."}
+      - {source: "Robert Shiller / Yale data", use: "Preferred underlying source for CAPE and long-run earnings history."}
+      - {source: "Federal Reserve H.15", use: "Official nominal and real Treasury constant-maturity yields."}
+      - source: "FRED"
+        series:
+          - "DGS10 or equivalent 10-year nominal constant-maturity Treasury series."
+          - "DFII10 for 10-year real Treasury yield."
+          - "T10YIE for 10-year breakeven inflation."
+      - {source: "U.S. Treasury", use: "Nominal and real yield-curve cross-checks."}
+      - {source: "State Street", use: "Official SPY index and fund characteristics, including FY1 P/E, trailing P/E, and yield."}
+      - {source: "Invesco", use: "Official QQQ characteristics, including trailing and forward P/E."}
+      - {source: "FactSet Earnings Insight", use: "S&P 500 forward 12-month P/E and comparison with five- and ten-year averages."}
+      - {source: "Research Affiliates Asset Allocation Interactive or official publication", use: "Preferred Research Affiliates 10-year forecast."}
+      - {source: "Vanguard Capital Markets Model", use: "Official 10-year U.S. equity return range and model-run date."}
+      - {source: "Schwab Long-Term Capital Market Expectations", use: "Official U.S. large-cap return forecast and underlying data date."}
+      - {source: "BlackRock Capital Market Assumptions", use: "Optional additional institutional anchor when the asset definition is comparable."}
+    secondary_sources:
+      - source: "Multpl"
+        use: >-
+          Convenient current and annual-history tables for CAPE, trailing P/E, price/sales,
+          dividend yield, earnings yield, and rates. Treat as a derived/aggregated source and
+          reconcile its embedded index price with the official S&P close.
+      - {source: "Morningstar", use: "Permitted for an institutional-forecast roundup when the official provider tool is dynamic, inaccessible, or login-gated."}
+      - {source: "Fortune or another reputable financial publication", use: "Permitted only when it clearly attributes an exact forecast and publication date to the original institution."}
+      - {source: "MacroMicro", use: "Market-cap-to-GDP or Nasdaq valuation context; not preferred for scored inputs."}
+      - {source: "GuruFocus", use: "Market-cap-to-GDP and Nasdaq price/sales context; disclose methodology differences."}
+      - {source: "Wall Street Journal market-data pages", use: "Nasdaq-100 trailing/forward valuation cross-check when official index data are unavailable."}
+      - rule: >-
+          Secondary sources may verify context or temporarily bridge an inaccessible primary
+          source. They should not silently replace a primary source when it is available.
+    uploaded_files:
+      used_by_current_module: []
+      not_required:
+        - "/mnt/data/risk_model_outputs_v3.xlsx"
+        - "/mnt/data/SPY_historical_data.csv"
+        - "/mnt/data/QQQ_historical_data.csv"
+        - "/mnt/data/IWM_historical_data.csv"
+        - "/mnt/data/BATS_COIN, 1D.csv"
+        - "/mnt/data/btc-usd-max (1).csv"
+        - "/mnt/data/eth-usd-max.csv"
+      note: >-
+        Existing uploaded price files and the risk-model workbook belong to Quant Risk or
+        crypto work. The Valuation module relies on fundamental, rate, and
+        institutional-forecast source tables rather than these price-history files.
+    series_or_tickers:
+      equity_focus: ["^SPX or official S&P 500 index", "SPY", "^NDX or official Nasdaq-100 index", "QQQ"]
+      valuation_series:
+        - "Shiller CAPE10"
+        - "S&P 500 trailing as-reported P/E"
+        - "S&P 500 forward 12-month or FY1 P/E"
+        - "S&P 500 price/sales"
+        - "S&P 500 dividend yield"
+        - "S&P 500 earnings yield"
+        - "Total market capitalization divided by GDP"
+        - "QQQ or Nasdaq-100 trailing P/E"
+        - "QQQ or Nasdaq-100 forward P/E"
+        - "Nasdaq-100 price/sales"
+      rates_series:
+        - "10-year nominal Treasury constant-maturity yield"
+        - "10-year real Treasury/TIPS yield"
+        - "10-year breakeven inflation"
+      institutional_forecasts:
+        - "Research Affiliates U.S. large-cap 10-year expected return"
+        - "Vanguard U.S. equity 10-year expected-return range"
+        - "Schwab U.S. large-cap 10-year expected return"
+        - "Optional comparable BlackRock or GMO forecast"
+    history_windows:
+      cape: "1872-present annual snapshots plus one current observation."
+      trailing_pe: "1871-present annual snapshots plus one current observation."
+      price_to_sales: >-
+        Approximately 2000-present annual snapshots, or the earliest year consistently
+        available in the selected source. State the exact first year in each report.
+      erp_tightness: "2000-present aligned annual observations plus the current reading."
+      forward_pe: "Current plus provider-supplied five- and ten-year averages; not presently scored."
+      nominal_10y: "Long history available, but only the 2000-present aligned window enters ERP-tightness normalization."
+      real_10y: "TIPS era, approximately 2003/2005-present; contextual and not scored."
+      market_cap_to_gdp: "Approximately 1970-present where available; contextual and not scored."
+      institutional_forecasts: "Forward horizon of approximately 10 years; no historical percentile."
+    adjusted_or_unadjusted_prices:
+      index_price_basis: >-
+        Use the unadjusted price index, not a total-return index. Valuation ratios are based
+        on the index price and fundamental denominators.
+      cape_basis: >-
+        CAPE uses an unadjusted current index price divided by inflation-adjusted average
+        earnings over the prior ten years, as supplied by Shiller or a Shiller-derived source.
+      spy_qqq_basis: "Use issuer-reported characteristics without independently dividend-adjusting ETF prices."
+      price_stamp_reconciliation:
+        authoritative_price: "Official S&P Dow Jones Indices close."
+        adjustment_factor: "k = official_SPX_close / source_embedded_SPX_price."
+        price_proportional_metrics:
+          metrics: ["CAPE", "Trailing P/E", "Price/sales"]
+          transformation: "adjusted_metric = source_metric * k."
+        inverse_price_metrics:
+          metrics: ["Earnings yield", "Dividend yield"]
+          transformation: "adjusted_yield = source_yield / k."
+        tolerance:
+          no_adjustment: "Absolute price discrepancy of 0.10% or less may be treated as rounding."
+          adjust_and_disclose: "Discrepancy above 0.10% when both price stamps and dates are explicit."
+          reject_or_find_alternate: "Discrepancy above 1.0%, uncertain timestamps, or incompatible trading dates."
+        forward_pe_rule: >-
+          Do not rescale an issuer- or FactSet-reported forward P/E unless its exact price
+          stamp and earnings denominator are known. Prefer reporting the published figure with
+          its own as-of date.
+    splice_or_proxy_rules:
+      - "Prefer direct Shiller/Yale data for CAPE; Multpl may be used as a Shiller-derived history proxy when the primary file is inconvenient or temporarily unavailable."
+      - "SPY FY1 P/E is an acceptable proxy for S&P 500 forward valuation, but it is contextual rather than scored because the history and calculation methodology are not fully consistent with FactSet."
+      - "FactSet forward 12-month P/E and State Street FY1 P/E must be shown as distinct measures. Do not average them."
+      - "QQQ issuer valuation is the preferred ETF-level tech proxy. Nasdaq-100 valuation from WSJ, GuruFocus, or MacroMicro may supplement it."
+      - "Do not splice QQQ and NDX valuation histories into one percentile series without verifying identical constituents, denominator definitions, and dates."
+      - "Market-cap-to-GDP may use total U.S. market capitalization/GDP or a broad-market proxy such as Wilshire 5000/GDP, but provider methodology must be disclosed and the metric remains contextual."
+      - "Do not create a long-history forward-P/E percentile by joining incompatible provider series merely to fill gaps."
+    asof_selection_rule:
+      market_close: "Use the latest completed U.S. market close. Label the module ASOF as YYYY-MM-DD close."
+      slow_fundamental_series: >-
+        Use the latest published or estimated valuation observation available by the
+        market-close date. Explicitly state the denominator date when earnings, sales,
+        dividends, or GDP lag the market price.
+      rates: >-
+        Prefer same-day Federal Reserve H.15, FRED, or Treasury data. If the official series is
+        one business day behind, use the prior official value plus a same-day reputable
+        market-close cross-check and disclose the mixed dates. Never imply that a prior-day
+        official rate is same-day.
+      forecasts: >-
+        Use only forecasts published and publicly available by the module ASOF. Record both the
+        publication date and the underlying model/data date.
+      future_dated_material: "Do not use a publication dated after the module ASOF."
+      latest_state_refresh: >-
+        The latest-state block below is a carry-forward snapshot from 2026-08-14. The successor
+        agent must refresh all current values before issuing the next live update.
+    incomplete_row_rule:
+      historical_percentiles:
+        - "Keep one observation per completed calendar year."
+        - "Append the current observation exactly once."
+        - "Remove duplicate current-year rows."
+        - "Exclude blanks, N/A values, and malformed rows."
+        - "Do not forward-fill missing historical fundamental observations."
+      current_scored_metric:
+        - "A clearly labeled current estimate may be used when the source methodology is consistent with its history, but label it estimated."
+        - "If a scored input is temporarily unavailable, carry forward its last verified value for no more than one weekly cycle and reduce confidence."
+        - "If the input remains unavailable, use a neutral component risk of 50, disclose the substitution, and do not silently redistribute weights."
+      stale_sales:
+        - "Continue to show the current price/sales ratio when the source uses a lagged sales denominator, but report the denominator end date."
+        - "Reduce confidence when the sales denominator is more than two quarters old."
+        - "If the denominator exceeds 12 months of age, seek another consistent source before continuing to score the component."
+      stale_forecast:
+        - "Use the latest forecast from each provider."
+        - "Flag forecasts older than 12 months."
+        - "Drop a forecast older than 18 months when a newer annual edition should exist."
+        - "Do not treat a republished article as a new forecast if the underlying model date is unchanged."
+
+  calculations:
+    formulas:
+      cape: "CAPE = current index price / average real earnings over the prior 10 years."
+      trailing_pe: "Trailing P/E = current index price / trailing as-reported earnings per share."
+      earnings_yield: "Earnings yield percent = 100 / trailing P/E."
+      forward_pe: "Forward P/E = current price / expected next-12-month or FY1 earnings; use provider-reported methodology."
+      price_to_sales: "Price/sales = current index price / trailing 12-month sales per share."
+      dividend_yield: "Dividend yield percent = trailing 12-month dividends per share / current price * 100."
+      nominal_erp_proxy: "Nominal ERP proxy = S&P 500 earnings yield - 10Y nominal Treasury yield."
+      erp_tightness: "ERP tightness = 10Y nominal Treasury yield - S&P 500 earnings yield = -1 * nominal ERP proxy."
+      real_yield_spread: "Real-yield spread context = S&P 500 earnings yield - 10Y real Treasury yield."
+      breakeven_inflation: "10Y breakeven inflation = 10Y nominal Treasury yield - 10Y real Treasury yield."
+      market_cap_to_gdp: "Market-cap-to-GDP percent = total U.S. equity market capitalization / nominal U.S. GDP * 100."
+      percentile_risk: "Risk = 100 * count(history_values <= current_value) / number_of_observations."
+      weighted_score: >-
+        Score = 0.30*CAPE_risk + 0.20*trailing_PE_risk + 0.10*price_sales_risk +
+        0.25*ERP_tightness_risk + 0.15*institutional_anchor_risk.
+      institutional_anchor: >-
+        Map each provider's nominal 10-year return to risk using the fixed piecewise-linear
+        schedule, then take the equal-weight mean of provider risks.
+    transformations:
+      - "Convert ratios to percentages consistently before subtracting yields."
+      - "Use decimal percentage points in ERP calculations: 3.36% - 4.68% = -1.32 percentage points."
+      - "Do not describe -1.32 percentage points as -132%."
+      - "Invert nominal ERP only for the scored tightness measure so higher always means worse."
+      - "Apply official-close adjustment factor k to price-proportional ratios and divide yield measures by k."
+      - "Use the midpoint of an institutional forecast range for scoring while retaining the full range in the report."
+      - "Round the final score only after calculating the complete weighted result."
+      - "Retain at least two decimal places internally even when the report displays one or two decimals."
+    derived_metrics:
+      - {name: "CAPE percentile risk", interpretation: "Long-history valuation risk; higher CAPE and percentile mean greater caution."}
+      - {name: "Trailing P/E percentile risk", interpretation: "Current earnings multiple relative to long history."}
+      - {name: "Price/sales percentile risk", interpretation: "Revenue-multiple extension; useful when earnings margins are unusually high."}
+      - name: "Nominal ERP proxy"
+        interpretation: >-
+          A simple relative-yield measure. Positive values favor equities relative to nominal
+          Treasuries; negative values indicate the Treasury yield exceeds the trailing earnings
+          yield.
+      - {name: "ERP tightness", interpretation: "Scoring form of the nominal ERP proxy. Higher values mean a less attractive equity-versus-Treasury yield comparison."}
+      - name: "Real-yield spread"
+        interpretation: >-
+          Context only. It is not a complete ex-ante real equity risk premium because trailing
+          earnings yield is not a contractual real return and does not directly incorporate
+          growth, payout, inflation, or margin changes.
+      - {name: "Institutional forecast risk", interpretation: "Scenario-based expected-return anchor that partially offsets or reinforces current valuation ratios."}
+      - {name: "ValuationRiskScore", interpretation: "Slow-moving composite of historical valuation, rates-aware valuation, and expected-return anchors."}
+
+  interpretation:
+    low_risk_regime:
+      score_range: "0-35"
+      characteristics:
+        - "CAPE, P/E, and price/sales well below normal historical percentiles."
+        - "Positive and wide nominal ERP."
+        - "Institutional 10-year forecasts generally above approximately 7%-8% nominal."
+      contribution_pacing_message: "Valuation supports accelerating new contributions, especially if other modules are not signaling acute stress."
+    neutral_regime:
+      score_range: "35-60"
+      characteristics:
+        - "Valuation metrics near their middle historical ranges or internally mixed."
+        - "Rates-aware spread neither strongly favorable nor strongly adverse."
+        - "Institutional forecasts near normal long-term nominal return assumptions."
+      contribution_pacing_message: "Valuation does not require a material departure from baseline contribution pacing."
+    high_risk_regime:
+      score_range: "60-80"
+      characteristics:
+        - "Valuation ratios above normal historical percentiles."
+        - "Prospective returns below historical averages."
+        - "Treasury yields provide meaningful competition."
+      contribution_pacing_message: "Valuation supports somewhat slower or more selective new contributions and preserving cash for better entry points."
+    extreme_regime:
+      score_range: "80-100"
+      characteristics:
+        - "At least several core metrics near historical extremes."
+        - "Thin or negative nominal ERP proxy."
+        - "Institutional forecasts generally imply low-to-mid single-digit nominal returns."
+      contribution_pacing_message: >-
+        Valuation alone supports a cautious, selective pace, often approximately 0.5x-0.75x
+        discretionary DCA for additional U.S. large-cap or QQQ-like exposure. It does not by
+        itself justify stopping all core contributions or selling taxable holdings.
+
+  supervisor_integration:
+    official_score_field: "SCORE_0_100 in the Supervisor Packet; VALUATION_RISK_SCORE_0_100 in the human-readable report."
+    confidence_definition: >-
+      Confidence measures data completeness, source quality, date alignment, denominator
+      freshness, and agreement among signals. It is not prediction confidence. A score in the
+      80s generally means all five scored components are available but at least one relies on a
+      derived/secondary source, stale denominator, or date reconciliation.
+    confidence_guidance:
+      - {range: "90-100", meaning: "All scored inputs current, date-aligned, primarily sourced, and methodologically consistent."}
+      - {range: "80-89", meaning: "Core stack complete, with limited secondary sourcing, denominator lag, or minor as-of mismatch."}
+      - {range: "70-79", meaning: "One scored input materially stale, proxied, or sourced only indirectly."}
+      - {range: "Below 70", meaning: "A scored component is missing, contradictory, or cannot be reproduced reliably."}
+    key_metrics_required:
+      - "CAPE10, value, percentile, and as-of date."
+      - "S&P 500 trailing P/E, percentile, and as-of date."
+      - "S&P 500 price/sales, percentile, market-price date, and sales-denominator date."
+      - "S&P 500 earnings yield."
+      - "10Y nominal Treasury yield."
+      - "10Y real Treasury yield."
+      - "Nominal ERP proxy and ERP tightness."
+      - "SPY FY1 P/E or FactSet forward 12-month P/E as context."
+      - "QQQ or Nasdaq-100 forward P/E as context."
+      - "Market-cap-to-GDP as context."
+      - "Each institutional forecast, full range if applicable, publication date, and underlying model date."
+      - "Component risks, weights, and unrounded score calculation."
+    change_my_mind_triggers:
+      - "CAPE at or below 34."
+      - "S&P 500 price/sales at or below 3.0 and forward P/E at or below 19."
+      - "Nominal ERP at or above +0.5%, with +1.0% representing stronger repair."
+      - "Blended institutional 10-year U.S. large-cap forecast above approximately 6.5% nominal."
+      - "For higher risk: CAPE at or above 45, price/sales at or above 4.0, or nominal ERP at or below -1.5%."
+    overlap_with_other_modules:
+      quant_risk: >-
+        Both modules may react to rising prices, but Quant Risk measures price/trend extension
+        while Valuation measures price relative to earnings, sales, rates, and long-horizon
+        returns.
+      macro_policy: >-
+        Macro owns the outlook for inflation, growth, and central-bank policy. Valuation uses
+        observed Treasury yields only as a discount-rate and relative-yield input.
+      liquidity_credit: >-
+        Liquidity/Credit owns spreads, funding conditions, and credit stress. Valuation uses the
+        risk-free 10Y yield, not credit spreads, in its ERP comparison.
+      sentiment_technicals: >-
+        Sentiment/Technicals owns positioning, momentum, breadth, and tactical behavior.
+        Valuation does not infer short-term timing from expensive starting valuations.
+    double_counting_warnings:
+      - "Do not score trailing P/E and forward P/E simultaneously unless the component weights are formally redesigned."
+      - "Do not separately score the 10Y nominal yield, 10Y real yield, and ERP tightness; that would count rates multiple times."
+      - "Institutional forecasts already incorporate starting valuation, rates, growth, and margins, so their weight remains limited to 15%."
+      - "Price/sales and market-cap-to-GDP overlap as broad price-to-economic-fundamental measures; market-cap-to-GDP remains contextual."
+      - "Do not add QQQ valuation as a sixth scored component without reducing another weight; otherwise U.S. mega-cap technology is double counted."
+      - "Do not let the Supervisor count this module's negative ERP again inside Macro or Liquidity unless those modules are measuring a distinct mechanism."
+
+  latest_state:
+    status: "Carry-forward state from the last completed Valuation report; refresh before the next live update."
+    asof: "2026-08-14 close"
+    score: 89
+    confidence: 83
+    score_change:
+      prior_asof: "2026-06-26 close"
+      prior_score: 90
+      change_points: -1
+      classification: "Effectively unchanged; remains in the extreme valuation-risk regime."
+    component_risks:
+      cape_percentile_risk: 99.4
+      trailing_pe_percentile_risk: 96.8
+      price_to_sales_percentile_risk: 100.0
+      erp_tightness_percentile_risk: 89.3
+      institutional_10y_forecast_risk: 49.8
+      weighted_unrounded_score: 88.97
+    data_quality_adjustment:
+      official_spx_close: 7785.76
+      aggregator_embedded_spx_price: 7851.30
+      adjustment_factor: 0.99165
+      treatment: >-
+        CAPE, trailing P/E, and price/sales were multiplied by 0.99165. Earnings yield and
+        dividend yield were divided by 0.99165.
+      classification: "Data reconciliation only; no scoring-methodology change."
+    top_drivers:
+      - "CAPE10=42.20, approximately the 99.4th percentile and near the dot-com valuation extreme."
+      - "S&P 500 price/sales=3.81, the highest reading in the available 2000-present annual sample."
+      - "Earnings yield=3.36% versus 10Y nominal yield=4.68%, producing nominal ERP=-1.32%."
+    key_metrics:
+      cape10: {value: 42.20, asof: "2026-08-14 close"}
+      sp500_trailing_pe: {value: 29.75, asof: "2026-08-14 close"}
+      sp500_price_to_sales:
+        value: 3.81
+        price_asof: "2026-08-14 close"
+        denominator_end_date: "2025-09"
+        caveat: "Sales denominator was materially lagged."
+      sp500_earnings_yield: {value: "3.36%", asof: "2026-08-14 close"}
+      ust10y_nominal: {value: "4.68%", asof: "2026-08-14 close"}
+      ust10y_real: {value: "2.41%", asof: "2026-08-14 close"}
+      breakeven_10y: {value: "2.27%", asof: "2026-08-14"}
+      nominal_erp: {value: "-1.32 percentage points", asof: "2026-08-14 close"}
+      erp_tightness:
+        value: "+1.32 percentage points"
+        percentile: "Approximately 89.3rd percentile since 2000"
+        asof: "2026-08-14 close"
+      spy_fy1_pe: {value: 21.68, asof: "2026-08-14 close"}
+      factset_forward_12m_pe: {value: 20.0, asof: "2026-08-07"}
+      qqq_forward_pe: {value: 26.71, asof: "2026-07-31"}
+      market_cap_to_gdp: {value: "240.04%", asof: "2026-08-14"}
+    institutional_forecasts:
+      research_affiliates:
+        expected_return: "3.2% nominal annualized"
+        asset: "U.S. large caps"
+        publication_date: "2026-05-21"
+        source_quality: "Secondary-source verified because the official interactive tool was dynamic or inaccessible."
+        mapped_risk: 68.0
+      vanguard:
+        expected_return: "4.2%-6.2% nominal annualized"
+        scoring_midpoint: "5.2%"
+        asset: "U.S. equities"
+        publication_date: "2026-07-22"
+        model_date: "2026-06-30"
+        mapped_risk: 45.0
+      schwab:
+        expected_return: "5.9% nominal annualized"
+        asset: "U.S. large-cap equities"
+        publication_date: "2026-01-02"
+        underlying_data_date: "2025-10-31"
+        mapped_risk: 36.3
+      blended_midpoint: "Approximately 4.8% nominal annualized"
+      blended_risk: 49.8
+    triggers:
+      - "CAPE10 falls to 34 or lower."
+      - "S&P 500 price/sales falls to 3.0 or lower and SPY FY1 P/E falls to 19 or lower."
+      - "Nominal ERP improves to +0.5 percentage points or better."
+
+  output_contract:
+    human_readable_sections:
+      required_order:
+        - "Title and not-financial-advice framing."
+        - "1) Header with exact ASOF date and one-to-two-line market context."
+        - "2) Score, confidence, prior score, and change classification."
+        - "Data-integrity adjustment section when source stamps conflict."
+        - "3) Dashboard table with value, benchmark/history, percentile or z-score, risk contribution, and citation."
+        - "4) Institutional expected-return anchors with publication and model dates."
+        - "5) Scoring methodology, component weights, and arithmetic."
+        - "6) Interpretation with top drivers, counterweights, and change-my-mind triggers."
+        - "7) So-what paragraph focused on new-contribution pacing."
+        - "SUPERVISOR PACKET (COPY/PASTE) as the final section."
+      citation_rules:
+        - "Every current numeric valuation, rate, and forecast value must have a citation."
+        - "Derived metrics must cite their input sources."
+        - "Prefer primary sources and identify secondary verification explicitly."
+        - "Always include forecast publication dates and underlying model dates when available."
+        - "Do not present a search-result snippet as primary evidence when the official page is accessible."
+      style:
+        - "Concise but sufficiently explanatory for Jason."
+        - "Spreadsheet-friendly metric names and exact dates."
+        - "No implication that expensive valuation predicts an imminent market top."
+        - "Distinguish observed values from estimates, proxies, adjustments, and derived calculations."
+    supervisor_packet:
+      title: "SUPERVISOR PACKET (COPY/PASTE)"
+      container: "A single triple-backtick code block, plain text only."
+      formatting_rules:
+        - "Use the exact keys shown below."
+        - "Keep every bullet on one line."
+        - "No markdown table inside the packet."
+        - "ASOF must be YYYY-MM-DD and include 'close' for market-based data."
+        - "Include explicit dates for metrics with different as-of dates."
+        - "NOTES must disclose stale denominators, proxy use, source conflicts, and methodology changes."
+      exact_body_template: |-
+        MODULE: Valuation / Expected Returns
+        ASOF: YYYY-MM-DD close
+        SCORE_0_100: NN
+        CONFIDENCE_0_100: NN
+        TOP_3_DRIVERS:
+        - One-line driver with metric, value, date or historical context
+        - One-line driver with metric, value, date or historical context
+        - One-line driver with metric, value, date or historical context
+        CHANGE_MY_MIND (TRIGGERS):
+        - One-line quantitative trigger
+        - One-line quantitative trigger
+        - One-line quantitative trigger
+        KEY_METRICS:
+        - CAPE10=value (YYYY-MM-DD close)
+        - SP500_PE_TTM=value (YYYY-MM-DD close)
+        - SP500_PSales=value (YYYY-MM-DD close; denominator date if lagged)
+        - EarningsYield=value (YYYY-MM-DD close)
+        - UST10Y_Nominal=value (YYYY-MM-DD)
+        - UST10Y_Real=value (YYYY-MM-DD)
+        - ERP_Nominal=value (YYYY-MM-DD close)
+        - SPY_FY1_PE=value (YYYY-MM-DD)
+        - QQQ_Forward_PE=value (YYYY-MM-DD)
+        NOTES:
+        - Methodology status, data gaps, proxy notes, stale denominators, price-stamp adjustments, and forecast publication dates
+    spreadsheet_or_csv_output:
+      current_requirement: >-
+        No separate spreadsheet or CSV file is mandatory, but the dashboard and packet must use
+        stable, copy/paste-friendly field names.
+      recommended_one_row_per_update_fields:
+        - "asof_date"
+        - "score"
+        - "confidence"
+        - "cape_value"
+        - "cape_percentile"
+        - "cape_risk"
+        - "trailing_pe_value"
+        - "trailing_pe_percentile"
+        - "trailing_pe_risk"
+        - "price_sales_value"
+        - "price_sales_denominator_date"
+        - "price_sales_percentile"
+        - "price_sales_risk"
+        - "earnings_yield"
+        - "ust10y_nominal"
+        - "ust10y_real"
+        - "breakeven_10y"
+        - "nominal_erp"
+        - "erp_tightness"
+        - "erp_tightness_percentile"
+        - "erp_tightness_risk"
+        - "institutional_anchor_midpoint"
+        - "institutional_anchor_risk"
+        - "spy_fy1_pe"
+        - "factset_forward_pe"
+        - "qqq_forward_pe"
+        - "market_cap_to_gdp"
+        - "official_spx_close"
+        - "source_embedded_spx_price"
+        - "price_adjustment_factor"
+        - "stale_data_flags"
+        - "methodology_version"
+      recommended_methodology_version: "VALUATION_V2_NOMINAL_FORECAST_MAPPING"
+
+  known_caveats:
+    - "CAPE is structurally affected by accounting standards, index composition, payout policy, corporate taxes, margins, buybacks, and the growing role of intangible assets. Its percentile is informative but not a complete fair-value model."
+    - "Trailing P/E can be distorted by cyclical earnings collapses or unusually high profit margins."
+    - "Forward P/E depends on analyst estimates that are revised over time and often become less reliable near economic turning points."
+    - "Price/sales ignores margins and capital intensity. A high-margin index can support a higher price/sales ratio than historical low-margin markets."
+    - "The current price/sales denominator may lag the market price by multiple quarters. Always disclose the denominator date."
+    - "Dividend yield is affected by buybacks and is therefore less comparable across very long histories."
+    - "Market-cap-to-GDP is sensitive to globalization, foreign revenue, private versus public market composition, Federal Reserve balance-sheet adjustments, and provider definitions."
+    - "The nominal ERP proxy is not a full ex-ante equity risk premium. It uses a trailing earnings yield and omits expected growth, payout, duration, default risk, and multiple change."
+    - "Earnings yield minus real Treasury yield is not a complete expected real equity return spread and remains contextual."
+    - "Institutional forecasts may define U.S. equities or U.S. large caps differently and may use different currency, inflation, fee, and valuation assumptions."
+    - "Equal-weighting institutional providers is a pragmatic convention, not evidence that every model is equally accurate."
+    - "Annual-snapshot percentile histories reduce serial correlation but can miss major intra-year valuation extremes."
+    - "Multpl and similar aggregators may update price and fundamental denominators on different schedules, creating internally inconsistent current ratios."
+    - "QQQ and Nasdaq-100 composition changes materially over time, and intangible-heavy firms can make historical price/sales and book-value comparisons less clean."
+    - "High valuation is associated with lower long-horizon expected returns but is not a reliable short-term market-timing indicator."
+
+  known_failure_modes:
+    - "Silently mixing market prices, earnings, sales, GDP, yields, or forecasts from different as-of dates."
+    - "Using an aggregator's current valuation ratio without checking its embedded index-price stamp."
+    - "Multiplying earnings yield or dividend yield by the price-adjustment factor instead of dividing by it."
+    - "Treating State Street FY1 P/E and FactSet forward 12-month P/E as identical or averaging them."
+    - "Computing earnings yield from forward P/E while labeling it trailing earnings yield."
+    - "Scoring nominal and real Treasury yields separately in addition to ERP tightness."
+    - "Double counting starting valuation by heavily weighting institutional forecasts and valuation ratios."
+    - "Adding QQQ valuation to the score without reducing another component weight."
+    - "Including both a current-year annual row and a separate current observation in the percentile sample."
+    - "Forward-filling missing historical fundamentals."
+    - "Treating a stale institutional forecast as newly published because a secondary article was recently updated."
+    - "Using a forecast published after the module ASOF."
+    - "Failing to report the sales-denominator date for price/sales."
+    - "Changing history windows or component weights without labeling a methodology revision."
+    - "Allowing a one-week price move to create an implausibly large change in this slow-moving module."
+    - "Presenting expensive valuation as proof that a near-term correction is imminent."
+    - "Recommending taxable selling solely because the valuation score is high."
+    - "Reporting numeric values without citations or publication dates."
+
+  files_or_code_needed_for_reproduction:
+    mandatory_existing_files: []
+    current_status: >-
+      No dedicated valuation workbook or source archive has yet been established. The latest
+      scores were calculated from public source tables and explicit arithmetic in the reports.
+    recommended_reproduction_artifact:
+      filename: "valuation_expected_returns_model.xlsx"
+      worksheets:
+        - {name: "Current_Source_Snapshot", purpose: "Current values, exact as-of dates, source names, URLs, and stale-data flags."}
+        - {name: "Annual_History", purpose: "One observation per year for CAPE, trailing P/E, price/sales, earnings yield, nominal 10Y, and ERP tightness."}
+        - {name: "Institutional_Forecasts", purpose: "Provider, asset definition, forecast range, midpoint, publication date, model date, source quality, and mapped risk."}
+        - {name: "Scoring", purpose: "Percentiles, component risks, weights, unrounded score, rounded score, and confidence notes."}
+        - {name: "Price_Reconciliation", purpose: "Official close, source-embedded price, adjustment factor, and adjusted valuation metrics."}
+        - {name: "Audit_Log", purpose: "Every methodology or source change by update date."}
+    recommended_code:
+      language: "Python or spreadsheet formulas"
+      required_functions:
+        - "Fetch or ingest annual source tables."
+        - "Deduplicate current-year observations."
+        - "Calculate inclusive empirical percentiles."
+        - "Apply official-close reconciliation."
+        - "Map institutional nominal forecasts to risk with linear interpolation."
+        - "Calculate the weighted score without premature rounding."
+        - "Flag stale sales, rate-date mismatches, stale forecasts, and secondary-only verification."
+        - "Export the recurring Supervisor Packet fields."
+    source_archiving_rule: >-
+      Save a dated copy or machine-readable extract of every source table used for a scored
+      input. Public webpages can revise historical observations, making later reproduction
+      impossible without snapshots.
+
+  unresolved_questions:
+    - "Whether to replace annual-snapshot percentiles with monthly observations. This could improve statistical resolution but would require a full historical backfill and score recalibration."
+    - "Whether a consistent long-history forward-P/E series can be licensed or assembled well enough to replace trailing P/E in the score."
+    - "Whether price/sales should remain at 10% if sales-denominator lags continue to exceed two quarters."
+    - "Whether market-cap-to-GDP should receive a small explicit weight or remain contextual because of globalization and denominator problems."
+    - "Whether the 10Y real yield should enter the score directly. Current policy is no, because ERP tightness already uses the nominal 10Y and direct use would risk rate double counting."
+    - "Whether institutional forecasts should remain nominal or move to provider-specific real returns. Current policy is nominal because it is more reproducible across providers."
+    - "Whether QQQ/NDX deserves a separate tech-valuation subscore for the 20% sleeve rather than remaining contextual within an SPX-centric module."
+    - "Whether CAPE should be supplemented by an intangible-adjusted, buyback-adjusted, or margin-normalized valuation measure."
+    - "Whether the score should be calibrated directly against subsequent realized 10-year real returns rather than relying primarily on empirical valuation percentiles."
+
+  recommended_next_improvements:
+    - "Build the dedicated valuation workbook and audit log described above."
+    - "Ingest Robert Shiller's primary spreadsheet directly instead of relying principally on a Shiller-derived webpage."
+    - "Archive every scored source snapshot with exact retrieval time and publication date."
+    - "Automate official-SPX-close reconciliation and fail the run when the source discrepancy exceeds 1%."
+    - "Add explicit stale-denominator metadata for earnings, sales, dividends, and GDP."
+    - "Create a provider registry for Research Affiliates, Vanguard, Schwab, BlackRock, and GMO forecasts."
+    - "Automatically expire institutional forecasts after 18 months unless the provider's update cadence is demonstrably slower."
+    - "Acquire or construct a consistent monthly forward-P/E history before considering it as a scored component."
+    - "Backtest the component blend against subsequent 7-year and 10-year nominal and real S&P 500 returns."
+    - "Test whether annual versus monthly percentile normalization materially changes historical regime classifications."
+    - "Evaluate a separate, clearly labeled Nasdaq-100 valuation subscore without changing the canonical SPX-centric module."
+    - "Formalize the confidence score into a documented penalty schedule after enough historical runs exist to calibrate it."
+    - "Preserve the current five weights and nominal forecast mapping until Jason explicitly approves a methodology revision."
+
+# NOTE — recorded at intake, not analysis:
+# latest_state score 89 / confidence 83 / asof 2026-08-14 close are identical to the
+# ValuationExpectedReturns entry already held as the PRIOR Supervisor baseline, and the module
+# labels itself a carry-forward snapshot requiring refresh before the next live update.
+# The 15% institutional anchor is the component holding the score at 89 rather than the mid-90s,
+# and it leans on a Schwab forecast whose underlying data date is 2025-10-31 - ten months stale
+# against the 2026-08-14 market it is being used to assess.

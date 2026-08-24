@@ -79,6 +79,52 @@ latest_user_supplied_state:
         market_cap_to_GDP: "240.04%"
 
   latest_supervisor_result:
+    asof: "2026-08-24 report date"
+    module_asof_dates:
+      QuantRisk: "2026-08-14 close"
+      MacroPolicy: "2026-08-13 close (rates); 2026-07 labor/CPI; 2026-06 PCE; 2026-Q2 advance GDP"
+      LiquidityCredit: "2026-08-21 close; H.4.1 week ending 2026-08-19; NFCI/STLFSI4 week ending 2026-08-14"
+      SentimentTechnicals: "2026-08-14 close"
+      ValuationExpectedReturns: "2026-08-14 close"
+    module_scores: {QuantRisk: 97, MacroPolicy: 59, LiquidityCredit: 17, SentimentTechnicals: 63, ValuationExpectedReturns: 89}
+    module_confidences: {QuantRisk: 84, MacroPolicy: 80, LiquidityCredit: 88, SentimentTechnicals: 84, ValuationExpectedReturns: 83}
+    overall_risk_score: 69.2
+    weighted_confidence: 83.9
+    regime: "Slow DCA"
+    raw_multiplier: 0.6350
+    operational_multiplier: 0.65
+    effective_multiplier: 0.6136
+    weekly_baseline: 250000
+    amount_deployed: 162500
+    incremental_holdback: 87500
+    core_amount: 130000
+    sleeve_amount: 32500
+    robo_cash_parked: 9100
+    market_deploy: 153400
+    reserve_release: false
+    prior_overall_comparison:
+      prior_asof: "2026-08-14 close"
+      prior_score: 68.8
+      change: 0.4
+      classification: "Essentially unchanged"
+      attribution: "Entire change is LiquidityCredit 15 -> 17 (0.20 x +2 = +0.40). All four other modules contributed exactly zero."
+    staleness_warning: |
+      NOT a fresh weekly run. Four of five modules carry values identical to the 2026-08-14
+      run and each disclaims its own currency. Only LiquidityCredit was re-measured. The
+      prior-run comparison for the other four is against themselves and is therefore not
+      evidence of stability. Refresh all five before the next decision.
+    provisional_sleeve_tilt:
+      status: "One-contribution tilt, provisional; no current holdings supplied. NOT a strategic target change."
+      weights: {QQQM: 0.15, QUAL: 0.11, DFAC: 0.08, DUHP: 0.10, SPMO: 0.03, DISV: 0.19, DFIV: 0.21, DFEV: 0.13}
+      amounts: {QQQM: 4875.00, QUAL: 3575.00, DFAC: 2600.00, DUHP: 3250.00, SPMO: 975.00, DISV: 6175.00, DFIV: 6825.00, DFEV: 4225.00}
+      change_from_prior_tilt: |
+        DFIV trimmed 0.23 -> 0.21 and QQQM raised 0.14 -> 0.15 versus the 2026-08-14 tilt.
+        Rationale: the Schwab core's FNDF already supplies fundamental-weighted developed
+        international value, so the prior DFIV overweight double-counted that tilt; and Quant
+        shows SPY (0.992) MORE extended than QQQ (0.942), which does not support a severe
+        QQQM underweight even though Valuation shows QQQ richer on forward P/E.
+
+  superseded_2026_08_14_result:
     asof: "2026-08-14 close"
     overall_risk_score: 68.8
     weighted_confidence: 83.9
