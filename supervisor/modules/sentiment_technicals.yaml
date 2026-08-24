@@ -1,0 +1,1032 @@
+# MODULE TRANSFER HANDOFF — Sentiment & Technicals
+#
+# Received from Jason 2026-08-24. Pasted under the label "valuation packet", but the
+# document's own module_name is "Sentiment & Technicals". Filed by actual module.
+# See supervisor/modules/INTAKE_LEDGER.md.
+#
+# The Supervisor consumes only latest_state.score and latest_state.confidence.
+
+MODULE_TRANSFER_HANDOFF:
+  module_name: "Sentiment & Technicals"
+  mission: >
+    Measure US-equity sentiment extremes, volatility posture, trend health, breadth quality,
+    and risk-appetite leadership. Produce a stable 0-100 caution score that helps the
+    Supervisor distinguish: (1) complacent/extended risk-on conditions, (2) orderly
+    corrections that clear excess without breaking trend, and (3) genuine technical or
+    breadth breakdowns. The module is descriptive decision support, not a market-timing
+    system or a standalone buy/sell signal.
+
+  boundaries:
+    owns:
+      - "VIX spot level, short-term changes, 52-week position, and implied-volatility term structure."
+      - "SPY position versus its 50-day and 200-day simple moving averages."
+      - "SPY drawdown from its trailing 252-trading-day closing high."
+      - "ETF-based breadth and risk-appetite proxies: RSP/SPY, IWM/SPY, XLY/XLP, and SPHB/SPLV."
+      - "Sentiment labels such as complacent, neutral, fearful, and panic/stress."
+      - "Technical posture labels such as risk-on, corrective, mixed, and risk-off/broken."
+      - "A single SentimentTechScore on a stable 0-100 caution scale."
+      - "Change-versus-prior interpretation and explicit conditions that would alter the score."
+    does_not_own:
+      - "Long-horizon valuation or expected-return estimates."
+      - "Macroeconomic growth, inflation, labor, or Federal Reserve policy analysis."
+      - "Credit spreads, funding liquidity, bank stress, or financial-conditions analysis."
+      - "The canonical Quant Risk log-price/EMA/quantile-band model."
+      - "The Supervisor's final OverallRisk score or final DCA pace decision."
+      - "Taxable-sale recommendations, portfolio construction, or security selection."
+      - "Individual-stock technical analysis."
+      - "Exchange advance-decline breadth unless a durable public data source is added later."
+      - "Fragile or paywalled sentiment surveys unless explicitly approved."
+
+  risk_scale:
+    orientation: "0 equals lowest caution; 100 equals highest caution."
+    important_two_sided_feature: >
+      A high score can arise from either extreme complacency/extension or genuine
+      technical stress. A low VIX is not automatically low risk: very low and rapidly
+      declining volatility can signal complacency, inexpensive protection, crowded
+      risk-taking, and vulnerability to volatility re-pricing. Conversely, a moderate
+      VIX increase during an orderly correction can reduce forward risk by clearing
+      complacency. Every report must state whether the score is driven by overheating,
+      breakdown, or a mixture.
+    score_bands:
+      - {range: "0-34", label: "Low module risk", interpretation: "Supportive reset, healthy trend, limited extension, and no meaningful breadth damage."}
+      - {range: "35-49", label: "Neutral-to-supportive", interpretation: "Normal conditions or an orderly pullback with intact intermediate trend."}
+      - {range: "50-59", label: "Mild caution", interpretation: "Some volatility, defensive rotation, extension, or mixed breadth, but no decisive extreme."}
+      - {range: "60-69", label: "Moderate caution", interpretation: "Meaningful complacency/extension or several deteriorating technical signals."}
+      - {range: "70-84", label: "High caution", interpretation: "Melt-up excess, confirmed risk-off deterioration, or several aligned adverse signals."}
+      - {range: "85-100", label: "Extreme caution", interpretation: "Severe complacent blow-off or systemic technical/volatility stress."}
+    separate_condition_labels:
+      complacent: >
+        Normally VIX at or below approximately 15.5, VIX/VIX3M materially below 0.90,
+        VIX near the bottom 15 percent of its 52-week range, or a large negative
+        20-session VIX change.
+      neutral: >
+        Normally VIX around 15.5-20 with ordinary contango and no unusually rapid
+        volatility move.
+      fearful: >
+        Normally VIX above 20 or a 20-session VIX increase above approximately 25
+        percent. If SPY remains above its 200-day average and VIX/VIX3M remains below
+        1.00, describe this as fear or event risk rather than panic.
+      panic_or_systemic_stress: >
+        Normally VIX above 30, VIX/VIX3M above approximately 1.05 for at least two
+        closes, and/or a simultaneous SPY trend break and breadth collapse.
+
+  current_scoring_methodology:
+    status: >
+      The canonical top-level framework is the fixed 40/30/30 model used from
+      2026-03-05 onward. Earlier reports used a looser 10-year percentile model.
+      The exact subweights and piecewise anchor mappings below are the formalized
+      migration standard. They convert what had partly been judgment-based scoring
+      into a reproducible implementation without changing the established 40/30/30
+      meaning. Do not alter these mappings silently; any revision must be disclosed
+      in NOTES and preserved in methodology history.
+    formula: |
+      VolatilityComplacencyScore =
+          0.30 * VIXLevelRisk
+        + 0.20 * VIX20DChangeRisk
+        + 0.10 * VIX5DChangeRisk
+        + 0.25 * VIXTermStructureRisk
+        + 0.15 * VIX52WPositionRisk
+
+      TrendExtensionScore =
+          0.30 * SPYVs50DMARisk
+        + 0.45 * SPYVs200DMARisk
+        + 0.25 * SPYDrawdown252DRisk
+
+      BreadthFragilityScore =
+          0.30 * RSPvsSPYRisk
+        + 0.30 * IWMvsSPYRisk
+        + 0.20 * XLYvsXLPRisk
+        + 0.20 * SPHBvsSPLVRisk
+
+      SentimentTechScore =
+          round(
+              0.40 * VolatilityComplacencyScore
+            + 0.30 * TrendExtensionScore
+            + 0.30 * BreadthFragilityScore
+          )
+
+      Clamp every subscore and component score to 0-100.
+      Use piecewise linear interpolation between the anchor points below.
+      For an input outside an anchor range, use the nearest endpoint score.
+    component_weights:
+      volatility_complacency:
+        weight_in_final_score: 0.40
+        subweights:
+          vix_level: 0.30
+          vix_20d_change: 0.20
+          vix_5d_change: 0.10
+          vix_term_structure: 0.25
+          vix_52w_position: 0.15
+      trend_extension:
+        weight_in_final_score: 0.30
+        subweights:
+          spy_vs_50dma: 0.30
+          spy_vs_200dma: 0.45
+          spy_drawdown_from_252d_high: 0.25
+      breadth_fragility:
+        weight_in_final_score: 0.30
+        subweights:
+          rsp_vs_spy: 0.30
+          iwm_vs_spy: 0.30
+          xly_vs_xlp: 0.20
+          sphb_vs_splv: 0.20
+    normalization:
+      general_rule: >
+        Calculate each raw metric exactly as specified under calculations. Map the
+        raw metric to a 0-100 risk subscore using piecewise linear interpolation
+        between the listed anchors. The mappings are deliberately non-monotonic
+        for VIX, term structure, moving-average distance, and drawdown because both
+        excessive calm/extension and severe breakdown can be risky.
+      current_anchor_mappings:
+        vix_level_risk:
+          purpose: >
+            Moderate VIX around 19-22 can represent a healthy risk reset and therefore
+            maps to lower caution. Very low VIX maps to high complacency risk. Very high
+            VIX maps to high stress risk.
+          input_unit: "VIX points"
+          anchors:
+            - {input: 10.0, risk: 100}
+            - {input: 12.5, risk: 100}
+            - {input: 13.5, risk: 90}
+            - {input: 15.0, risk: 75}
+            - {input: 17.0, risk: 55}
+            - {input: 19.0, risk: 35}
+            - {input: 21.0, risk: 30}
+            - {input: 23.0, risk: 40}
+            - {input: 25.0, risk: 55}
+            - {input: 30.0, risk: 80}
+            - {input: 40.0, risk: 100}
+        vix_20d_change_risk:
+          purpose: >
+            A rapid volatility crush raises complacency risk. A moderate rise can clear
+            complacency and reduce risk. A very large rise eventually becomes a stress
+            signal and raises risk again.
+          input_unit: "Percent change over 20 trading sessions"
+          anchors:
+            - {input: -40.0, risk: 100}
+            - {input: -25.0, risk: 95}
+            - {input: -15.0, risk: 80}
+            - {input: -5.0, risk: 60}
+            - {input: 0.0, risk: 50}
+            - {input: 20.0, risk: 30}
+            - {input: 40.0, risk: 50}
+            - {input: 75.0, risk: 80}
+            - {input: 150.0, risk: 100}
+        vix_5d_change_risk:
+          purpose: "Capture very recent volatility compression or shock without allowing one week to dominate."
+          input_unit: "Percent change over 5 trading sessions"
+          anchors:
+            - {input: -25.0, risk: 95}
+            - {input: -15.0, risk: 80}
+            - {input: -5.0, risk: 60}
+            - {input: 0.0, risk: 50}
+            - {input: 15.0, risk: 30}
+            - {input: 35.0, risk: 55}
+            - {input: 60.0, risk: 80}
+            - {input: 100.0, risk: 100}
+        vix_term_structure_risk:
+          input_metric: "VIX divided by VIX3M"
+          interpretation: >
+            Ratio below 1.00 is contango. Very steep contango can indicate complacency.
+            Ratio near 0.95-0.98 is usually a benign/normal curve. Ratio above 1.00 is
+            backwardation and increasingly signals stress.
+          anchors:
+            - {input: 0.70, risk: 100}
+            - {input: 0.78, risk: 90}
+            - {input: 0.85, risk: 70}
+            - {input: 0.93, risk: 45}
+            - {input: 0.98, risk: 30}
+            - {input: 1.00, risk: 45}
+            - {input: 1.05, risk: 75}
+            - {input: 1.15, risk: 100}
+        vix_52w_position_risk:
+          input_metric: "(VIX minus 252-session low) divided by (252-session high minus low)"
+          input_unit: "0.00 to 1.00"
+          interpretation: >
+            A position very near the annual low indicates complacency. A mid-range
+            position normally carries less risk. A position near the annual high
+            indicates stress.
+          anchors:
+            - {input: 0.00, risk: 100}
+            - {input: 0.05, risk: 95}
+            - {input: 0.15, risk: 75}
+            - {input: 0.30, risk: 45}
+            - {input: 0.45, risk: 30}
+            - {input: 0.60, risk: 45}
+            - {input: 0.80, risk: 75}
+            - {input: 1.00, risk: 100}
+        spy_vs_50dma_risk:
+          input_unit: "Percent"
+          interpretation: >
+            Modest proximity to the 50-day average is normally healthy. Large positive
+            distance indicates short-term extension. Material negative distance indicates
+            trend damage.
+          anchors:
+            - {input: -15.0, risk: 100}
+            - {input: -10.0, risk: 85}
+            - {input: -5.0, risk: 65}
+            - {input: -2.0, risk: 40}
+            - {input: 0.0, risk: 35}
+            - {input: 2.0, risk: 55}
+            - {input: 5.0, risk: 75}
+            - {input: 8.0, risk: 90}
+            - {input: 12.0, risk: 100}
+        spy_vs_200dma_risk:
+          input_unit: "Percent"
+          interpretation: >
+            Modest positive distance reflects an intact trend. Very large positive
+            distance reflects extension. Negative distance, especially below minus
+            3 to minus 8 percent, reflects increasing intermediate-trend damage.
+          anchors:
+            - {input: -25.0, risk: 100}
+            - {input: -15.0, risk: 95}
+            - {input: -8.0, risk: 80}
+            - {input: -3.0, risk: 55}
+            - {input: 0.0, risk: 35}
+            - {input: 4.0, risk: 50}
+            - {input: 8.0, risk: 70}
+            - {input: 12.0, risk: 85}
+            - {input: 15.0, risk: 95}
+            - {input: 20.0, risk: 100}
+        spy_drawdown_252d_risk:
+          input_metric: "Positive drawdown magnitude: 100 times (1 minus close divided by trailing 252-session high)"
+          input_unit: "Percent drawdown magnitude"
+          interpretation: >
+            Being exactly at a high retains some extension risk. A controlled 3-7 percent
+            pullback can lower risk by clearing excess. Deeper drawdowns progressively
+            increase breakdown risk.
+          anchors:
+            - {input: 0.0, risk: 70}
+            - {input: 1.0, risk: 60}
+            - {input: 3.0, risk: 40}
+            - {input: 5.0, risk: 25}
+            - {input: 8.0, risk: 35}
+            - {input: 10.0, risk: 50}
+            - {input: 15.0, risk: 75}
+            - {input: 20.0, risk: 90}
+            - {input: 30.0, risk: 100}
+        rsp_vs_spy_risk:
+          input_metric: "0.70 times 63-session relative return plus 0.30 times 20-session relative return"
+          input_unit: "Percent"
+          interpretation: "Positive equal-weight leadership lowers breadth-fragility risk."
+          anchors:
+            - {input: -8.0, risk: 100}
+            - {input: -5.0, risk: 85}
+            - {input: -2.0, risk: 65}
+            - {input: 0.0, risk: 45}
+            - {input: 1.0, risk: 35}
+            - {input: 3.0, risk: 20}
+            - {input: 5.0, risk: 10}
+            - {input: 8.0, risk: 5}
+        iwm_vs_spy_risk:
+          input_metric: "0.70 times 63-session relative return plus 0.30 times 20-session relative return"
+          input_unit: "Percent"
+          interpretation: "Positive small-cap leadership lowers breadth-fragility risk."
+          anchors:
+            - {input: -8.0, risk: 100}
+            - {input: -5.0, risk: 85}
+            - {input: -2.0, risk: 65}
+            - {input: 0.0, risk: 45}
+            - {input: 1.0, risk: 35}
+            - {input: 3.0, risk: 20}
+            - {input: 5.0, risk: 10}
+            - {input: 8.0, risk: 5}
+        xly_vs_xlp_risk:
+          input_metric: "0.50 times 63-session relative return plus 0.50 times 20-session relative return"
+          input_unit: "Percent"
+          interpretation: "Cyclical leadership lowers risk; persistent defensive leadership raises risk."
+          anchors:
+            - {input: -12.0, risk: 100}
+            - {input: -7.0, risk: 85}
+            - {input: -3.0, risk: 65}
+            - {input: 0.0, risk: 45}
+            - {input: 2.0, risk: 25}
+            - {input: 5.0, risk: 15}
+            - {input: 10.0, risk: 10}
+        sphb_vs_splv_risk:
+          base_metric: "0.60 times 63-session relative return plus 0.40 times 20-session relative return"
+          base_anchors:
+            - {input: -10.0, risk: 100}
+            - {input: -5.0, risk: 75}
+            - {input: -2.0, risk: 55}
+            - {input: 0.0, risk: 35}
+            - {input: 3.0, risk: 20}
+            - {input: 8.0, risk: 10}
+          overheating_adjustment: |
+            Start with the interpolated base risk.
+            Add 0 points if SPHB/SPLV 20D is <= +4% and 63D is <= +15%.
+            Add 5 points if 20D is > +4% or 63D is > +15%.
+            Add 10 points if 20D is > +6% or 63D is > +20%.
+            Add 20 points if 20D is > +8% or 63D is > +25%.
+            Add 25 points if 20D is > +12% or 63D is > +35%.
+            Use only the single highest applicable adjustment, not cumulative additions.
+            Final SPHB/SPLV risk = clamp(base risk + adjustment, 0, 100).
+          interpretation: >
+            Ordinary positive high-beta leadership confirms risk appetite and lowers
+            fragility risk. Extremely rapid high-beta leadership adds an overheating
+            penalty, but should not outweigh healthy equal-weight and small-cap breadth
+            unless the move is unusually extreme.
+      missing_input_policy:
+        - "VIX and SPY close are mandatory; do not issue an official score without them."
+        - "If VIX3M is unavailable, remove its 25 percent volatility subweight and renormalize the remaining volatility subweights; subtract at least 7 confidence points."
+        - "If one breadth pair is unavailable, renormalize the remaining breadth subweights and disclose the omission."
+        - "If two or more breadth pairs are unavailable, cap confidence at 60 and label the breadth conclusion provisional."
+        - "Never silently substitute a different lookback or denominator."
+    thresholds:
+      score_change_classification:
+        - {absolute_change: "0-2 points", label: "No material change"}
+        - {absolute_change: "3-5 points", label: "Modest change"}
+        - {absolute_change: "6-9 points", label: "Meaningful change"}
+        - {absolute_change: "10 or more points", label: "Regime-level change"}
+      escalation_thresholds:
+        complacent_melt_up:
+          score_guidance: "70-76"
+          conditions:
+            - "VIX at or below 13."
+            - "SPY at least 12 percent above its 200-day moving average."
+            - "High-beta leadership accelerating, especially SPHB/SPLV 20D above 8 percent."
+        healthy_reset:
+          score_guidance: "45-55"
+          conditions:
+            - "SPY 3-7 percent below its 252-day high."
+            - "SPY remains above, or near and recovering toward, its 200-day moving average."
+            - "VIX generally 17-22."
+            - "VIX/VIX3M remains below 1.00."
+            - "RSP/SPY and IWM/SPY 63D are not materially negative."
+        confirmed_risk_off:
+          score_guidance: "70-85"
+          conditions:
+            - "VIX/VIX3M above 1.00 for at least two closes."
+            - "SPY below its 50-day moving average."
+            - "RSP/SPY and IWM/SPY deteriorating together."
+            - "XLY/XLP and SPHB/SPLV negative on recent lookbacks."
+        severe_breakdown:
+          score_guidance: "85-100"
+          conditions:
+            - "SPY materially below its 200-day moving average."
+            - "VIX/VIX3M above approximately 1.05."
+            - "Broad confirmation from equal-weight, small caps, cyclicals, and high beta."
+    methodology_history:
+      - date: "2025-12-26"
+        method: "Early seven-signal, trailing-10-year percentile model"
+        weights:
+          vix_level: 0.25
+          vix_20d_change: 0.15
+          spy_vs_200dma: 0.20
+          rsp_vs_spy_63d: 0.15
+          iwm_vs_spy_63d: 0.10
+          xly_vs_xlp_63d: 0.10
+          sphb_vs_splv_63d: 0.05
+        percentile_formulas:
+          percentile_rank: "100 times count(history <= current value) divided by valid history count"
+          vix_level_risk: "100 minus VIX percentile rank; lower VIX produced higher complacency risk."
+          vix_20d_change_risk: "100 minus percentile rank of the 20-session VIX change; large negative changes produced higher complacency risk."
+          spy_vs_200dma_risk: "Direct percentile rank; larger positive extension produced higher risk."
+          breadth_risk: >
+            Initially used direct percentile ranks for the relative-performance proxies.
+            This made strong breadth mechanically raise the score and was later recognized
+            as inconsistent with the desired breadth-fragility interpretation.
+        historical_note: >
+          This implementation produced a score of 67 on 2025-12-26. It is retained for
+          audit history but is not the current canonical model.
+      - date: "2026-01-12"
+        method: >
+          Still described as percentile-based, but the narrative began treating healthy
+          equal-weight, small-cap, cyclical, and high-beta breadth as a risk reducer rather
+          than an automatic risk increase.
+      - date: "2026-02-12"
+        method: >
+          Added SPY versus 50-day moving average and drawdown from the trailing 252-day
+          high as explicit technical-posture inputs. This improved the distinction between
+          a shallow correction and a long-term trend break.
+      - date: "2026-03-05"
+        method: >
+          Adopted the fixed component framework: 40 percent volatility/complacency,
+          30 percent trend/extension, and 30 percent breadth fragility.
+      - date: "2026-06-26"
+        method: >
+          Reaffirmed the fixed 40/30/30 framework and continued using ETF relative-return
+          proxies when direct exchange breadth was unavailable.
+      - date: "2026-08-14"
+        method: >
+          First report to show explicit component subscores: volatility/complacency 84,
+          trend/extension 70, breadth fragility 28, producing a final score of 63.
+      - date: "2026-08-24"
+        method: >
+          Migration handoff formalized the previously implicit subweights and piecewise
+          mappings. The 40/30/30 top-level weights remain unchanged. Treat the mappings
+          in this handoff as the continuity default unless Jason explicitly revises them.
+    # NOTE: in the source handoff this key was indented as though it were a
+    # methodology_history list item. It is a sibling mapping, not a history entry;
+    # re-indented here so the file parses. Content unchanged.
+    percentile_context_going_forward:
+      role: "Diagnostic and historical context only; not the canonical current score."
+      calculation_window: "Trailing 10 years of valid daily observations; use at least 5 years if 10 years are unavailable."
+      recommended_fields:
+        - "VIX level percentile and inverse-complacency percentile."
+        - "VIX 20D change percentile."
+        - "SPY versus 200DMA percentile."
+        - "Each 63D relative-return percentile."
+      warning: >
+        Do not replace the current fixed-anchor score with percentile ranks without an
+        explicit methodology change. Percentiles can shift when the historical window
+        rolls through unusual volatility regimes.
+
+  data_pipeline:
+    primary_sources:
+      - source: "Cboe"
+        use: "Official VIX and VIX3M levels and historical closes when directly available."
+        preferred_series_or_symbol: ["VIX", "VIX3M"]
+      - source: "Federal Reserve Economic Data"
+        use: "Stable public fallback for daily closing volatility series."
+        preferred_series_or_symbol: ["VIXCLS", "VXVCLS"]
+        note: "VXVCLS is the FRED three-month volatility series corresponding to the VIX3M concept."
+      - source: "Local adjusted-price histories"
+        use: "SPY, QQQ, and IWM calculations when files are current enough."
+      - source: "Public daily ETF price histories"
+        use: "RSP, XLY, XLP, SPHB, and SPLV, plus any ETF not covered by current local files."
+        source_priority:
+          - "Official issuer or exchange downloadable data."
+          - "Stooq daily CSV/history."
+          - "Other stable public historical-price source."
+    secondary_sources:
+      - {source: "Barchart", use: "Performance-table cross-check or fallback; fixed-date calculations are preferable."}
+      - {source: "Investing.com", use: "Historical close cross-check or fallback."}
+      - {source: "StockAnalysis", use: "Historical ETF price cross-check."}
+      - {source: "Twelve Data", use: "Moving-average or technical cross-check when daily prices are not directly downloadable."}
+      - {source: "TipRanks", use: "Moving-average cross-check only; do not make it the sole source if raw daily data are available."}
+      - {source: "Market quote/finance tool", use: "Spot verification only; never use an intraday quote as a completed daily close."}
+    uploaded_files:
+      relevant:
+        - file: "SPY_historical_data.csv"
+          path_in_original_runtime: "/mnt/data/SPY_historical_data.csv"
+          coverage_observed: "1999-01-04 through 2025-12-26"
+          format: "Three-row yfinance-style header followed by Date, Close, High, Low, Open, Volume."
+          adjustment_note: >
+            Historical values appear adjustment-aware; early SPY prices are much lower
+            than contemporaneous raw quoted prices. Treat the Close series as adjusted-style
+            data and do not mix it with an unadjusted series inside the same calculation.
+        - file: "QQQ_historical_data.csv"
+          path_in_original_runtime: "/mnt/data/QQQ_historical_data.csv"
+          coverage_observed: "1999-03-10 through 2025-12-26"
+          format: "Same structure as SPY file."
+        - file: "IWM_historical_data.csv"
+          path_in_original_runtime: "/mnt/data/IWM_historical_data.csv"
+          coverage_observed: "2000-05-26 through 2025-12-26"
+          format: "Same structure as SPY file."
+      not_required_for_this_module:
+        - file: "risk_model_outputs_v3.xlsx"
+          note: >
+            This is not required for the Sentiment & Technicals calculation and was not
+            the canonical source for prior module reports. It appears associated with the
+            separate Quant Risk process.
+        - {file: "BATS_COIN, 1D.csv", note: "Crypto/equity-specific file; not relevant to this US-index sentiment module."}
+        - {file: "btc-usd-max (1).csv", note: "Not relevant."}
+        - {file: "eth-usd-max.csv", note: "Not relevant."}
+      staleness_warning: >
+        The uploaded SPY, QQQ, and IWM files stop at 2025-12-26 and therefore cannot by
+        themselves reproduce 2026 updates. A new instance must refresh or append them.
+    series_or_tickers:
+      volatility: ["VIX or VIXCLS", "VIX3M or VXVCLS"]
+      core_index_proxy: ["SPY"]
+      breadth_and_leadership: ["RSP", "IWM", "XLY", "XLP", "SPHB", "SPLV"]
+      supplemental_not_scored_by_default: ["QQQ", "QQQ/SPY", "SPY 14-day RSI", "SPY 20-day return"]
+    history_windows:
+      vix_changes: {short: "5 trading sessions", medium: "20 trading sessions"}
+      moving_averages: {short_intermediate: "50 trading sessions", long_intermediate: "200 trading sessions"}
+      breadth: {short_confirmation: "20 trading sessions", primary: "63 trading sessions"}
+      trailing_high_low: "252 trading sessions"
+      historical_percentiles: "Trailing 10 years, diagnostic only"
+    adjusted_or_unadjusted_prices:
+      canonical_rule: >
+        Use one price convention consistently within every calculation. Prefer adjusted
+        close when a reliable adjusted series is available for all instruments in a pair.
+        Raw close is acceptable for short 20- and 63-session comparisons when that is the
+        only stable public source, but the report must disclose that dividends are omitted.
+      moving_average_rule: >
+        Prefer the same adjusted close series for SPY close, moving averages, and trailing
+        high calculations. Do not compare an adjusted current close with an unadjusted
+        moving average.
+      pair_rule: >
+        Both numerator and denominator in a relative-return pair must use the same
+        adjustment convention and the same common endpoint dates.
+      prior_report_note: >
+        Several historical reports used public price-performance tables and therefore
+        omitted dividends. The resulting drift is usually small over 20 or 63 sessions
+        but must be disclosed.
+    splice_or_proxy_rules:
+      - "Do not splice two providers inside a single 20D or 63D relative-return calculation unless overlap testing confirms continuity."
+      - "If a series changes provider, calculate the entire active lookback from the new provider."
+      - "Use SPY as the cap-weight large-cap denominator for RSP and IWM."
+      - "Use XLP as the defensive denominator for XLY."
+      - "Use SPLV as the low-volatility denominator for SPHB."
+      - "VXVCLS may stand in for VIX3M when official Cboe VIX3M history is unavailable."
+      - "QQQ/SPY is supplemental leadership context, not a required scored breadth pair."
+      - "Do not substitute QQQ for SPY in the trend component."
+    asof_selection_rule: >
+      Use the most recent completed US regular-session close for which SPY, VIX, and the
+      required breadth ETFs have valid daily closes. On weekends and holidays, use the
+      preceding trading day. If VIX3M is one day stale, prefer calculating term structure
+      on the latest common VIX/VIX3M date. If using a stale VIX3M value against a newer VIX
+      is unavoidable, date both metrics separately, disclose the mismatch, and reduce
+      confidence. The headline ASOF remains the latest completed equity-market close.
+    incomplete_row_rule:
+      - "Exclude the current session whenever it is still intraday, even if a quote provider displays a date and price."
+      - "Exclude a daily row with a missing Close."
+      - "For ETF histories, exclude obvious partial rows with missing required OHLC fields when OHLC are available."
+      - "Remove duplicate dates and retain only one verified completed close."
+      - "Sort dates ascending before calculating changes or moving averages."
+      - "Use common trading dates for both legs of every relative pair."
+      - "Do not treat a calendar-day gap as a missing trading observation."
+      - "If a source has posted a partial current-day row, stop at the preceding completed session and say so explicitly."
+
+  calculations:
+    formulas:
+      vix_5d_change_pct: "100 * (VIX_t / VIX_t_minus_5_sessions - 1)"
+      vix_20d_change_pct: "100 * (VIX_t / VIX_t_minus_20_sessions - 1)"
+      vix_term_spread: "VIX3M_t - VIX_t"
+      vix_term_ratio: "VIX_t / VIX3M_t"
+      vix_52w_position: "(VIX_t - min(VIX over last 252 sessions)) / (max(VIX over last 252 sessions) - min(VIX over last 252 sessions))"
+      spy_50dma: "Arithmetic mean of the latest 50 valid SPY closes, including the as-of close."
+      spy_200dma: "Arithmetic mean of the latest 200 valid SPY closes, including the as-of close."
+      spy_vs_50dma_pct: "100 * (SPY_close / SPY_50DMA - 1)"
+      spy_vs_200dma_pct: "100 * (SPY_close / SPY_200DMA - 1)"
+      spy_252d_high: "Maximum SPY close over the latest 252 valid trading sessions, including the as-of close."
+      spy_drawdown_signed_pct: "100 * (SPY_close / SPY_252D_high - 1); value is zero or negative."
+      spy_drawdown_magnitude_pct: "100 * (1 - SPY_close / SPY_252D_high); value is zero or positive and is used for scoring."
+      relative_return_exact: >
+        100 * (((Numerator_t / Numerator_t_minus_L) /
+        (Denominator_t / Denominator_t_minus_L)) - 1)
+      relative_return_approximation: >
+        Numerator simple return minus denominator simple return. This was used in some
+        older public-table reports, but the exact ratio-return formula is now preferred.
+      rsp_spy_20d: "Exact relative-return formula with RSP as numerator, SPY as denominator, L=20."
+      rsp_spy_63d: "Exact relative-return formula with RSP as numerator, SPY as denominator, L=63."
+      iwm_spy_20d: "Exact relative-return formula with IWM as numerator, SPY as denominator, L=20."
+      iwm_spy_63d: "Exact relative-return formula with IWM as numerator, SPY as denominator, L=63."
+      xly_xlp_20d: "Exact relative-return formula with XLY as numerator, XLP as denominator, L=20."
+      xly_xlp_63d: "Exact relative-return formula with XLY as numerator, XLP as denominator, L=63."
+      sphb_splv_20d: "Exact relative-return formula with SPHB as numerator, SPLV as denominator, L=20."
+      sphb_splv_63d: "Exact relative-return formula with SPHB as numerator, SPLV as denominator, L=63."
+      optional_qqq_spy_relative: "Exact relative-return formula with QQQ as numerator and SPY as denominator."
+      optional_rsi_14: "Wilder 14-session RSI; context only and not part of the canonical score."
+    transformations:
+      - "Convert all return and moving-average distances to percentage units before mapping."
+      - "Use positive relative returns to mean numerator outperformance."
+      - "Use positive VIX change to mean volatility rose."
+      - "Use VIX/VIX3M below 1.00 to mean contango and above 1.00 to mean backwardation."
+      - "Store both signed drawdown and positive drawdown magnitude; use positive magnitude for scoring."
+      - "Apply piecewise linear interpolation and clamp every risk subscore to 0-100."
+      - "Round displayed percentages to two decimals, but retain full precision through score calculation."
+      - "Round component scores to one decimal for diagnostics and the official module score to the nearest integer."
+    derived_metrics:
+      - "VolatilityComplacencyScore"
+      - "TrendExtensionScore"
+      - "BreadthFragilityScore"
+      - "SentimentTechScore"
+      - "Sentiment condition label"
+      - "Technical posture label"
+      - "Change from prior score"
+      - "Change classification"
+      - "Driver type: complacency/extension, technical damage, or mixed"
+    sign_conventions:
+      - "Higher SCORE_0_100 always means more caution."
+      - "Low VIX can increase risk because it represents complacency."
+      - "A moderate VIX increase can lower risk if it clears excess without causing backwardation or trend failure."
+      - "Positive SPY-versus-MA means price is above the moving average."
+      - "Negative RSP/SPY means equal weight is lagging cap weight and breadth fragility is rising."
+      - "Negative IWM/SPY means small caps are lagging large caps."
+      - "Negative XLY/XLP means defensives are leading cyclicals."
+      - "Negative SPHB/SPLV means low-volatility stocks are leading high beta."
+      - "Very positive SPHB/SPLV is initially constructive but can receive an overheating penalty."
+
+  interpretation:
+    low_risk_regime:
+      typical_score: "0-34"
+      characteristics:
+        - "VIX generally in a moderate reset zone rather than at an extreme low or panic high."
+        - "VIX/VIX3M in normal contango, usually near 0.93-0.98."
+        - "SPY near or modestly above major moving averages."
+        - "A controlled 3-7 percent drawdown that leaves the 200-day trend intact."
+        - "RSP/SPY and IWM/SPY stable or positive."
+        - "No persistent defensive or low-volatility leadership."
+      interpretation: >
+        Sentiment excess has been cleared without broad technical damage. This can be a
+        comparatively supportive environment for normal or faster contribution pace,
+        subject to the Supervisor's other modules.
+    neutral_regime:
+      typical_score: "35-59"
+      characteristics:
+        - "Mixed signals, ordinary volatility, or a shallow correction."
+        - "SPY may be below its 50-day average while remaining above its 200-day average."
+        - "One breadth proxy may be weak while others remain constructive."
+        - "Fear may have risen but term structure remains in contango."
+      interpretation: >
+        Neither an overheated melt-up nor a confirmed breakdown. The module alone normally
+        supports baseline DCA rather than aggressive acceleration or a major slowdown.
+    high_risk_regime:
+      typical_score: "60-84"
+      complacency_variant:
+        - "VIX near its 52-week low."
+        - "VIX falling rapidly."
+        - "Steep VIX contango."
+        - "SPY materially above its 200-day average and near a high."
+        - "High-beta leadership becoming hot."
+      breakdown_variant:
+        - "VIX term structure flat or inverted."
+        - "SPY below its 50-day average."
+        - "Breadth proxies deteriorating together."
+        - "Cyclicals and high beta losing to defensives and low volatility."
+      interpretation: >
+        Reduce enthusiasm at the margin. The report must identify which variant is active,
+        because an overheating score and a breakdown score have different implications.
+    extreme_regime:
+      typical_score: "85-100"
+      characteristics:
+        - "VIX at an exceptionally low level plus extreme extension and speculative leadership; or"
+        - "VIX above approximately 30, backwardation, SPY below its 200-day average, and broad risk-off confirmation."
+      interpretation: >
+        Strong caution input. This still does not independently authorize taxable selling;
+        it informs the Supervisor's contribution-pace and risk-management decision.
+    orderly_correction_vs_breakdown:
+      orderly_correction:
+        - "SPY drawdown approximately 3-7 percent."
+        - "SPY above or close to its 200-day moving average."
+        - "VIX approximately 17-22."
+        - "VIX/VIX3M below 1.00."
+        - "RSP/SPY and IWM/SPY 63D not materially negative."
+        - "Breadth may soften over 20D without collapsing over 63D."
+        - "Normally lowers an extension-driven score toward 45-55."
+      trend_or_breadth_breakdown:
+        - "SPY below the 50-day average with failed recovery attempts."
+        - "SPY below or materially approaching the 200-day average."
+        - "VIX/VIX3M above 1.00 for two or more closes."
+        - "RSP/SPY and IWM/SPY negative over both 20D and 63D."
+        - "XLY/XLP and SPHB/SPLV negative together."
+        - "Normally raises the score toward 70-85 or higher."
+
+  supervisor_integration:
+    official_score_field: "SCORE_0_100"
+    internal_alias: "SentimentTechScore"
+    confidence_definition: >
+      Confidence measures data quality, source quality, date alignment, and signal clarity.
+      It is not prediction confidence and must not be described as the probability that
+      the market will rise or fall.
+    confidence_formula: |
+      Confidence =
+          0.40 * DataCompleteness
+        + 0.30 * SourceQuality
+        + 0.30 * SignalCoherence
+
+      Suggested scoring:
+      DataCompleteness = 100 when all required series are present on common dates.
+      SourceQuality = 100 for official/exchange/issuer data, about 85 for FRED or stable
+      public historical feeds, and about 70 for performance-table fallbacks.
+      SignalCoherence = 90-100 when volatility, trend, and breadth agree; 60-80 when mixed;
+      below 60 when signals strongly conflict or are stale.
+
+      Apply at least these deductions:
+      -7 points if VIX3M is missing or one day stale relative to VIX.
+      -5 points for each breadth pair calculated only from approximate performance tables.
+      -10 points if a required lookback is incomplete.
+      Cap confidence at 60 if two or more required breadth pairs are unavailable.
+    key_metrics_required:
+      - "VIX level and exact date."
+      - "VIX 5D percent change."
+      - "VIX 20D percent change."
+      - "VIX3M level and exact date."
+      - "VIX/VIX3M ratio."
+      - "VIX 52-week position or distance from 52-week low."
+      - "SPY close."
+      - "SPY versus 50DMA."
+      - "SPY versus 200DMA."
+      - "SPY drawdown from 252-session high."
+      - "RSP/SPY 20D and 63D relative returns."
+      - "IWM/SPY 20D and 63D relative returns."
+      - "XLY/XLP 20D and 63D relative returns."
+      - "SPHB/SPLV 20D and 63D relative returns."
+      - "VolatilityComplacencyScore."
+      - "TrendExtensionScore."
+      - "BreadthFragilityScore."
+      - "Change from prior official score."
+    change_my_mind_triggers:
+      raise_for_complacency:
+        - "VIX closes at or below 13."
+        - "SPY reaches at least 12 percent above its 200-day average."
+        - "SPHB/SPLV exceeds approximately 8 percent over 20D or 25 percent over 63D."
+      lower_after_healthy_reset:
+        - "SPY experiences an orderly 3-7 percent pullback."
+        - "VIX moves into approximately 17-22 without backwardation."
+        - "SPY remains above its 200-day average."
+        - "RSP/SPY and IWM/SPY 63D remain intact."
+      raise_for_breakdown:
+        - "VIX/VIX3M exceeds 1.00 for at least two closes."
+        - "SPY breaks below its 50-day average and breadth weakens simultaneously."
+        - "SPY breaks below its 200-day average."
+        - "RSP/SPY and IWM/SPY turn negative over both 20D and 63D."
+      lower_for_risk_on_confirmation:
+        - "SPY reclaims its 50-day average."
+        - "VIX falls below approximately 17 without returning to an extreme-low complacency zone."
+        - "RSP/SPY, IWM/SPY, and XLY/XLP remain positive."
+    overlap_with_other_modules:
+      quant_risk:
+        overlap: "SPY price extension, trend, and drawdown."
+        boundary: >
+          Sentiment & Technicals uses simple moving averages, drawdown, volatility, and
+          breadth for regime interpretation. Quant Risk owns the canonical log-price versus
+          long-horizon EMA and quantile-band risk model.
+      liquidity_credit:
+        overlap: "VIX and broad risk-off behavior can coincide with liquidity or credit stress."
+        boundary: >
+          This module describes equity-market volatility and leadership. Liquidity/Credit
+          owns spreads, funding, dealer conditions, and systemic credit confirmation.
+      macro_policy:
+        overlap: "Small-cap, cyclical, and defensive leadership can reflect macro expectations."
+        boundary: "Do not infer or rescore macro fundamentals from ETF leadership alone."
+      valuation:
+        overlap: "Strong extension and complacency can coexist with expensive valuation."
+        boundary: "Do not use earnings yields, CAPE, ERP, or long-run expected returns here."
+    double_counting_warnings:
+      - "Do not add SPY-versus-200DMA or drawdown again outside this module when combining with Quant Risk."
+      - "Do not interpret VIX as a second credit-spread score."
+      - "Do not treat positive small-cap or cyclical leadership as direct evidence of stronger GDP."
+      - "A high score caused by low VIX is not the same as bearish trend damage."
+      - "A moderate fear spike can reduce complacency risk; do not mechanically raise the score solely because VIX rose."
+      - "The Supervisor should consume the official module score once, not separately add all component metrics."
+
+  latest_state:
+    provenance_note: >
+      This is the last completed module state in the original thread, inherited from the
+      2026-08-14 report. It was not re-fetched or recalculated for this migration handoff.
+    asof: "2026-08-14 close"
+    score: 63
+    confidence: 84
+    condition_label: "Complacent"
+    technical_posture: "Risk-on, broad, mildly extended"
+    score_driver_type: "Primarily complacency and extension, not technical breakdown"
+    component_scores:
+      volatility_complacency: 84
+      trend_extension: 70
+      breadth_fragility: 28
+    top_drivers:
+      - "VIX closed 14.25, fell 24.1 percent over about 20 sessions, and was near the bottom of its 52-week range."
+      - "SPY closed 776.34 near its recent high and was approximately 3.6 percent above its 50DMA and 10.0 percent above its 200DMA."
+      - "Equal-weight and small-cap breadth were healthy, although high-beta leadership had become increasingly hot."
+    key_metrics:
+      - "VIX=14.25 (2026-08-14 close)"
+      - "VIX_5D_CHANGE=-4.36pct (2026-08-14 close)"
+      - "VIX_20D_CHANGE=-24.08pct (2026-08-14 close)"
+      - "VIX3M=18.46 (2026-08-14 close)"
+      - "VIX_VIX3M_RATIO=0.772 (2026-08-14 close)"
+      - "SPY_CLOSE=776.34 (2026-08-14 close)"
+      - "SPY_VS_50DMA=approximately +3.61pct (2026-08-14 close)"
+      - "SPY_VS_200DMA=approximately +9.98pct (2026-08-14 close)"
+      - "RSP_SPY_3M_RELATIVE=approximately +5pct (2026-05-15 through 2026-08-14)"
+      - "IWM_SPY_3M_RELATIVE=approximately +4.6pct (2026-05-15 through 2026-08-14)"
+      - "XLY_XLP_20D_RELATIVE=+1.32pct (2026-07-17 through 2026-08-14)"
+      - "SPHB_SPLV_20D_RELATIVE=+7.85pct (2026-07-17 through 2026-08-14)"
+    triggers:
+      - "Raise toward 70-plus if VIX falls to 13 or lower while SPY moves more than 12 percent above its 200DMA."
+      - "Raise toward 75-plus if VIX/VIX3M exceeds 1.00 while SPY breaks its 50DMA and breadth deteriorates."
+      - "Lower toward 45-55 after an orderly 3-7 percent pullback or consolidation that clears extension without breaking the 200-day trend."
+
+  output_contract:
+    human_readable_sections:
+      required_order:
+        - "Title and exact as-of date."
+        - "Executive read: score, confidence, sentiment condition, technical posture, and change from prior."
+        - "VIX and sentiment: level, 5D/20D changes, 52-week position, VIX3M, spread, and ratio."
+        - "SPY trend and extension: close, 50DMA, 200DMA, distances, and drawdown from high."
+        - "Breadth and risk appetite: RSP/SPY, IWM/SPY, XLY/XLP, and SPHB/SPLV."
+        - "Score construction: three component scores, fixed weights, and explanation."
+        - "Orderly-reset versus breakdown interpretation."
+        - "Decision-support conclusion for the Supervisor."
+        - "Mandatory SUPERVISOR PACKET (COPY/PASTE) as the final section."
+      style_rules:
+        - "Use exact dates for every market-based metric."
+        - "State whether current-day intraday data were excluded."
+        - "Use higher score to mean more caution every time."
+        - "Always say whether the score is driven by complacency/extension, breakdown, or mixed conditions."
+        - "Separate sentiment condition from technical posture."
+        - "Do not call low VIX bullish without discussing complacency risk."
+        - "Do not call a VIX spike systemic unless term structure and trend/breadth confirm."
+        - "Keep results spreadsheet-friendly with explicit percentages and thresholds."
+        - "Cite public sources in live reports."
+        - "Avoid paywalled or fragile sources when a public alternative exists."
+    supervisor_packet:
+      title_must_be_exactly: "SUPERVISOR PACKET (COPY/PASTE)"
+      placement: "Final section of every recurring market update."
+      formatting:
+        - "Single triple-backtick code block."
+        - "Plain text only."
+        - "No markdown-dependent tables."
+        - "Each driver, trigger, metric, and note must fit on one line."
+        - "Include every required key even when the value is N/A."
+      exact_template: |
+        MODULE: Sentiment & Technicals
+        ASOF: YYYY-MM-DD close
+        SCORE_0_100: N
+        CONFIDENCE_0_100: N
+        TOP_3_DRIVERS:
+        - one-line driver
+        - one-line driver
+        - one-line driver
+        CHANGE_MY_MIND (TRIGGERS):
+        - one-line trigger
+        - one-line trigger
+        - one-line trigger
+        KEY_METRICS:
+        - metric=value (YYYY-MM-DD close)
+        - metric=value (YYYY-MM-DD close)
+        - metric=value (YYYY-MM-DD close)
+        NOTES:
+        - one-line caveat, data gap, unusual assumption, and methodology-change disclosure if applicable
+      mandatory_content_rules:
+        - "MODULE must be Sentiment & Technicals."
+        - "ASOF must identify the completed close."
+        - "SCORE_0_100 must be the official rounded module score."
+        - "CONFIDENCE_0_100 measures data quality and signal clarity."
+        - "TOP_3_DRIVERS must contain exactly three one-line bullets."
+        - "CHANGE_MY_MIND (TRIGGERS) must contain exactly three one-line bullets."
+        - "KEY_METRICS should include more than three lines when needed; each must carry its own date."
+        - "NOTES must disclose stale data, approximate returns, omitted dividends, and methodology changes."
+    spreadsheet_or_csv_output:
+      status: >
+        A compact CSV is recommended for reproducibility and Supervisor archiving, although
+        the strict Supervisor packet is the only previously mandated machine-friendly block
+        for this module.
+      recommended_columns:
+        - "asof"
+        - "sentiment_tech_score"
+        - "confidence"
+        - "condition_label"
+        - "technical_posture"
+        - "score_driver_type"
+        - "volatility_complacency_score"
+        - "trend_extension_score"
+        - "breadth_fragility_score"
+        - "vix"
+        - "vix_5d_change_pct"
+        - "vix_20d_change_pct"
+        - "vix3m"
+        - "vix_minus_vix3m"
+        - "vix_div_vix3m"
+        - "vix_52w_position"
+        - "spy_close"
+        - "spy_50dma"
+        - "spy_200dma"
+        - "spy_vs_50dma_pct"
+        - "spy_vs_200dma_pct"
+        - "spy_drawdown_252d_pct"
+        - "rsp_spy_20d_pct"
+        - "rsp_spy_63d_pct"
+        - "iwm_spy_20d_pct"
+        - "iwm_spy_63d_pct"
+        - "xly_xlp_20d_pct"
+        - "xly_xlp_63d_pct"
+        - "sphb_splv_20d_pct"
+        - "sphb_splv_63d_pct"
+        - "score_change"
+        - "change_classification"
+        - "data_notes"
+
+  known_caveats:
+    - "ETF-relative breadth is a proxy for participation and leadership, not a true exchange advance-decline measure."
+    - "Price-only relative returns omit dividends when adjusted series are unavailable."
+    - "Short 20D and 63D windows can differ slightly across providers because of holiday handling, stale rows, or fixed-date performance conventions."
+    - "Public performance tables sometimes report rounded returns rather than exact closing-price calculations."
+    - "VIX3M or FRED VXVCLS may lag the latest VIX close by one session."
+    - "A single volatility spike can distort VIX's trailing 52-week range and position."
+    - "SPY moving averages differ if one provider uses adjusted close and another uses raw close."
+    - "Low VIX is a vulnerability indicator, not a precise correction-timing signal."
+    - "A high module score can represent opposite market states: a complacent melt-up or an active breakdown."
+    - "High-beta outperformance can be healthy breadth before it becomes overheating; the heat adjustment is intentionally secondary."
+    - "The formalized subscore anchors in this handoff were not stored in prior executable code; they codify the established narrative and component scores for continuity."
+    - "The latest inherited state used some approximate public-price calculations and should not be treated as an audited backtest record."
+
+  known_failure_modes:
+    - "Using an intraday quote as the official close."
+    - "Mixing today's VIX with yesterday's VIX3M without disclosure."
+    - "Mixing adjusted and unadjusted prices in a moving average or relative pair."
+    - "Using unmatched dates for the numerator and denominator of a relative-return pair."
+    - "Subtracting rounded performance-table returns when exact daily ratio returns are available."
+    - "Interpreting all low-VIX conditions as low risk."
+    - "Interpreting every VIX increase as high risk, even when it is an orderly reset in contango."
+    - "Treating healthy RSP/SPY or IWM/SPY leadership as fragility."
+    - "Allowing extreme SPHB/SPLV strength to dominate otherwise healthy breadth."
+    - "Calling a shallow break below the 50DMA a long-term trend breakdown while SPY remains above the 200DMA."
+    - "Ignoring simultaneous deterioration in RSP/SPY and IWM/SPY."
+    - "Double-counting SPY extension already represented in the Quant Risk module."
+    - "Changing weights or sign conventions from one update to the next without a methodology note."
+    - "Reporting a score without explaining whether it reflects extension or breakdown."
+    - "Failing to carry forward the exact prior score when calculating change."
+    - "Relying on a paywalled sentiment source that cannot be reproduced by the next agent."
+
+  files_or_code_needed_for_reproduction:
+    current_status:
+      dedicated_sentiment_code_exists: false
+      dedicated_sentiment_workbook_exists: false
+      note: >
+        Prior reports were calculated from public daily histories and report-specific
+        arithmetic rather than a durable stored Sentiment & Technicals workbook.
+    available_inputs:
+      - "SPY_historical_data.csv, stale after 2025-12-26"
+      - "QQQ_historical_data.csv, stale after 2025-12-26"
+      - "IWM_historical_data.csv, stale after 2025-12-26"
+    additional_series_needed:
+      - "Current SPY daily adjusted closes"
+      - "Current RSP daily adjusted closes"
+      - "Current IWM daily adjusted closes"
+      - "Current XLY daily adjusted closes"
+      - "Current XLP daily adjusted closes"
+      - "Current SPHB daily adjusted closes"
+      - "Current SPLV daily adjusted closes"
+      - "VIX daily closes"
+      - "VIX3M or VXVCLS daily closes"
+    minimum_reproduction_script_requirements:
+      - "Parse and normalize daily dates."
+      - "Remove incomplete intraday rows."
+      - "Align all relative pairs on common dates."
+      - "Compute 5D, 20D, 50D, 63D, 200D, and 252D metrics."
+      - "Apply the exact anchor interpolation and weights in this handoff."
+      - "Persist the prior official score and prior as-of date."
+      - "Export a one-row CSV plus the human-readable report."
+      - "Record source, adjustment convention, and last valid date for every series."
+    suggested_file_names:
+      - "sentiment_technicals.py"
+      - "sentiment_technicals_daily_inputs.csv"
+      - "sentiment_technicals_history.csv"
+      - "sentiment_technicals_latest.csv"
+    workbook_note: >
+      risk_model_outputs_v3.xlsx is not required for reproducing this module. A future
+      dedicated workbook could be useful, but it should not silently import Quant Risk
+      outputs into the SentimentTechScore.
+
+  unresolved_questions:
+    - >
+      Whether Jason wants the formalized subweights and anchor tables in this migration
+      handoff treated as permanently locked, or recalibrated after a historical backtest.
+      Until explicitly changed, use them as the continuity default.
+    - >
+      Whether all ETF calculations should be standardized on adjusted close, even when
+      obtaining adjusted histories for every breadth ETF is less convenient.
+    - >
+      Whether to add durable exchange breadth series such as advance-decline lines or
+      percentage above moving averages when a stable public source is identified.
+    - >
+      Whether to split the single score into two displayed diagnostics:
+      ComplacencyExtensionRisk and BreakdownStressRisk, while retaining one official score.
+    - "Whether the optional QQQ/SPY relative-leadership metric should become a scored input."
+    - >
+      Whether the 10-year percentile diagnostics should remain context-only or receive a
+      small formal weight after backtesting.
+    - >
+      Whether high-beta overheating should remain an adjustment inside breadth or become
+      a separate sentiment/speculation input.
+
+  recommended_next_improvements:
+    - priority: 1
+      improvement: >
+        Build and retain a daily aligned data panel for VIX, VIX3M, SPY, RSP, IWM, XLY,
+        XLP, SPHB, and SPLV, with explicit adjusted/raw flags and source fields.
+    - priority: 2
+      improvement: >
+        Implement the scoring rules in one deterministic script and save every official
+        daily or weekly state to a history CSV.
+    - priority: 3
+      improvement: >
+        Backtest the fixed mappings across major regimes, including 2000-2002, 2008-2009,
+        2011, 2015-2016, 2018, 2020, and 2022, while avoiding hindsight optimization.
+    - priority: 4
+      improvement: >
+        Compare the formalized mapping's reconstructed historical scores with the narrative
+        scores already issued, especially 2026-02-12, 2026-03-05, 2026-06-26, and 2026-08-14.
+    - priority: 5
+      improvement: >
+        Add an automated data-quality report showing stale series, missing observations,
+        provider changes, and common-date alignment.
+    - priority: 6
+      improvement: >
+        Store separate diagnostic subscores for complacency/extension and breakdown/stress
+        so the Supervisor can see why two very different regimes may receive similar scores.
+    - priority: 7
+      improvement: >
+        Add durable direct breadth data only after verifying public availability and
+        reproducibility; do not replace the ETF proxies with fragile sources.
+    - priority: 8
+      improvement: >
+        Produce a standard compact CSV row with every update in addition to the mandatory
+        Supervisor packet.
+    - priority: 9
+      improvement: >
+        Create explicit regression tests for sign conventions, including low VIX, VIX
+        backwardation, positive RSP/SPY, and negative SPHB/SPLV cases.
+    - priority: 10
+      improvement: >
+        Preserve methodology version, source version, and calculation timestamp in every
+        archived output so future agents can distinguish data revisions from real score changes.
+
+# NOTE — recorded at intake, not analysis:
+# latest_state score 63 / confidence 84 / asof 2026-08-14 close are identical to the
+# SentimentTechnicals entry already held in supervisor/continuity_snapshot.yaml as the
+# PRIOR Supervisor baseline, and the module labels this an inherited, not re-fetched, state.

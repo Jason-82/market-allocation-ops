@@ -1,0 +1,736 @@
+# MODULE TRANSFER HANDOFF — Quant Risk
+#
+# Received from Jason 2026-08-24 as part of a five-packet intake cycle.
+# This is the module's own durable specification, not a Supervisor packet.
+# The Supervisor consumes only `latest_state.score` and `latest_state.confidence`
+# and never recomputes them. Everything else here is provenance and reproduction detail.
+#
+# INTAKE FLAG: latest_state.asof is 2026-08-14 close — the same run already recorded in
+# supervisor/continuity_snapshot.yaml as the PRIOR Supervisor baseline. See NOTE at end of file.
+
+MODULE_TRANSFER_HANDOFF:
+  module_name: "Quant Risk"
+  mission: >-
+    Compute a repeatable, price-based extension signal for the S&P 500, Nasdaq-100,
+    SPY, QQQ, and IWM; provide VIX context; translate the signal into model risk-band
+    prices; and deliver one stable 0-100 QuantRisk score to the Market Allocation Ops
+    Supervisor. The module is decision support for contribution/DCA pacing, not a
+    forecast, support/resistance model, or fundamental valuation model.
+
+  boundaries:
+    owns:
+      - "Daily close-price ingestion, validation, de-duplication, and as-of selection for the Quant universe."
+      - "Core Risk Engine calculations: log price, EMA trend, deviation quantiles, risk_raw, risk_smooth, price_at_r, and four-week changes."
+      - "Canonical official score using SPY and QQQ, with IWM as a breadth/extension diagnostic."
+      - "Modern-window and full-history SPX/NDX comparisons, clearly labeled."
+      - "VIX as a volatility overlay, including term structure when a reliable source is available."
+      - "Experimental YouTuber/ITC-style risk-ladder emulation for BTC/ETH/COIN only when specifically requested."
+      - "Strict data-quality disclosure for splices, fixed bands, stale endpoints, proxy continuations, and adjustedness."
+    does_not_own:
+      - "Fundamental valuation or expected-return estimates."
+      - "Macro, policy, liquidity, credit-spread, or sentiment scoring."
+      - "The final portfolio-wide DCA multiplier; the Supervisor combines this module with other modules."
+      - "Tax-lot selection, taxable-sale recommendations, or execution timing."
+      - "Treating model risk-band prices as forecasts, support levels, guarantees, or declarations that an asset is cheap."
+      - "Adding BTC, ETH, COIN, or VIX to the official score unless Jason explicitly changes the methodology."
+
+  risk_scale: >-
+    Official module score is 0 to 100, where 0 means lowest modeled price-extension
+    risk and 100 means highest modeled price-extension risk. Each asset also has
+    risk_raw and risk_smooth on 0 to 1. Higher always means more extended versus the
+    model trend/deviation bands and therefore more caution. VIX uses the same math,
+    but a low VIX risk reading means subdued volatility, not low equity extension risk.
+
+  current_scoring_methodology:
+    formula:
+      asset_engine: >-
+        For each daily series, compute the Risk Engine specified under calculations.formulas.
+      etf_composite_risk: "0.60 * SPY_risk_smooth + 0.40 * QQQ_risk_smooth"
+      official_quant_score: "round(100 * ETF_composite_risk)"
+      secondary_inputs: >-
+        IWM is reported as a breadth/extension diagnostic. SPX and NDX are reference
+        series. VIX is a volatility overlay. None is blended into the official score.
+    component_weights:
+      SPY_risk_smooth: 0.60
+      QQQ_risk_smooth: 0.40
+      IWM_risk_smooth: 0.00
+      SPX_risk_smooth: 0.00
+      NDX_risk_smooth: 0.00
+      VIX_risk_smooth: 0.00
+    normalization:
+      asset_level: "risk_raw and risk_smooth are clamped/smoothed values in [0,1]."
+      module_level: "Multiply the fixed SPY/QQQ composite by 100 and round to the nearest integer."
+      quantile_method: "Full available as-of-sample 5th and 95th percentiles of dev, using linear interpolation unless explicitly changed."
+      cross_asset_warning: >-
+        Risk values are comparable only when series use comparable history windows and
+        consistent price treatment. Never compare full-history SPX directly with modern-window
+        SPY without labeling the calibration difference.
+    thresholds:
+      module_score_action_bands:
+        "0_to_35": "Low modeled extension; Quant input can support faster contributions."
+        "35_to_60": "Middle range; Quant input is broadly compatible with baseline contributions."
+        "60_to_80": "Elevated extension; Quant input supports slower contributions."
+        "80_to_100": "High/extreme extension; Quant input supports minimal or substantially reduced contributions."
+      price_band_language:
+        r0.9: "Less extremely extended; initial de-extension from an extreme regime."
+        r0.8: "Meaningfully de-extended."
+        r0.5: "Approximately neutral within this trend/deviation model."
+        r0.2: "Deeply de-extended or unusually favorable in this model."
+      caution: >-
+        Module-score bands and price-at-risk r levels are related but not identical.
+        price_at_r maps current risk_raw, whereas risk_smooth lags because of the 28-session EMA.
+    methodology_history:
+      - date: "2025-12 to 2026-01"
+        change: >-
+          Initial core implementation used Stooq daily closes and the 504-session log-price
+          EMA plus full-history 5th/95th deviation quantiles; SPX/NDX and ETF readings were
+          initially reported together.
+      - date: "2026-01"
+        change: >-
+          Diagnosed large SPX-versus-SPY and NDX-versus-QQQ discrepancies as history-window
+          effects. Truncating SPX to SPY's 1999 start and NDX to QQQ's 1999 start made the
+          readings converge. SPY/QQQ became the canonical official-score inputs.
+      - date: "2026-01"
+        change: >-
+          Replaced shorter Stooq ETF histories with Jason's uploaded SPY and IWM histories;
+          QQQ uploaded history was effectively the same length as Stooq. Uploaded history was
+          spliced to newer rows only after overlap validation.
+      - date: "2026-01 onward"
+        change: "Official score fixed at round(100 * (0.60 * SPY + 0.40 * QQQ))."
+      - date: "2026-06 and 2026-08"
+        change: >-
+          Stooq refreshes were blocked. Reports used continuation estimates, observed closes,
+          and fixed long-run bands. Those reports were explicitly lower-confidence and are not
+          equivalent to a clean full-history recomputation.
+      - date: "2026-08-17"
+        change: >-
+          New mandatory reporting standard added all r0.2/r0.5/r0.8/r0.9 levels, percentage
+          distances, modern/full index labeling, VIX fields, prior-report comparison, expanded
+          Supervisor Packet, and compact CSV output.
+      - date: "experimental branch"
+        change: >-
+          A separate BTC/ETH YouTuber/ITC emulation workbook was created. It uses fitted
+          power-law trends and, for BTC, a piecewise shape function from a published ladder.
+          It is not the official equity QuantRisk methodology and should remain isolated.
+
+  data_pipeline:
+    primary_sources:
+      - source: "Stooq daily CSV"
+        role: "Preferred full daily histories and current closes for SPX, NDX, SPY, QQQ, and IWM."
+        endpoints:
+          SPX: "https://stooq.com/q/d/l/?s=%5Espx&i=d"
+          NDX: "https://stooq.com/q/d/l/?s=%5Endx&i=d"
+          SPY: "https://stooq.com/q/d/l/?s=spy.us&i=d"
+          QQQ: "https://stooq.com/q/d/l/?s=qqq.us&i=d"
+          IWM: "https://stooq.com/q/d/l/?s=iwm.us&i=d"
+        caveat: "Provider access has sometimes been blocked by JavaScript verification."
+      - source: "FRED VIXCLS"
+        role: "Preferred VIX spot/history cross-check."
+        endpoint: "https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS"
+      - source: "Cboe VIX historical data"
+        role: "Preferred complete VIX history when FRED download is delayed or unavailable."
+    secondary_sources:
+      - source: "FRED SP500 and NASDAQ100 series"
+        role: "Exact index-close cross-check or fallback spot source; verify publication lag and series definition."
+      - source: "StockAnalysis historical ETF pages"
+        role: >-
+          Emergency recent-close continuation when Stooq is unavailable. Do not use silently;
+          document the upstream provider, price treatment, exact fetched range, and any missing bridge.
+      - source: "Uploaded local histories"
+        role: "Canonical long ETF histories through their file endpoints."
+    uploaded_files:
+      - filename: "SPY_historical_data.csv"
+        sha256: "682da2e35f5b47bfd08a4fd5c13f8256038b6b53ca81b1cae6f2af056fff2dd5"
+        bytes: 632009
+        data_rows: 6788
+        date_range: "1999-01-04 through 2025-12-26"
+        columns: ["Date", "Close", "High", "Low", "Open", "Volume"]
+        parsing_note: "Three-row yfinance-style header; data begins on physical row 4."
+        price_treatment: >-
+          Appears to be yfinance auto-adjusted OHLC, inferred from early historical levels;
+          this is not explicitly encoded in file metadata and should be verified against the export settings.
+        role: "Canonical historical SPY base until a newer consistent source is appended."
+      - filename: "QQQ_historical_data.csv"
+        sha256: "7e299571d2882808f1a3a944121bb474bc6cce437c465bc3be051f45f190144f"
+        bytes: 629677
+        data_rows: 6743
+        date_range: "1999-03-10 through 2025-12-26"
+        columns: ["Date", "Close", "High", "Low", "Open", "Volume"]
+        parsing_note: "Three-row yfinance-style header; data begins on physical row 4."
+        price_treatment: "Appears adjusted; same qualification as SPY."
+        role: "Canonical historical QQQ base; its start date was essentially identical to the earlier Stooq QQQ pull."
+      - filename: "IWM_historical_data.csv"
+        sha256: "9c6e7240212f387f5b01081c8a720cdd7021243866313beb09dc1b4b1a1506a1"
+        bytes: 600312
+        data_rows: 6435
+        date_range: "2000-05-26 through 2025-12-26"
+        columns: ["Date", "Close", "High", "Low", "Open", "Volume"]
+        parsing_note: "Three-row yfinance-style header; data begins on physical row 4."
+        price_treatment: "Appears adjusted; same qualification as SPY."
+        role: "Canonical historical IWM base; materially longer than the earlier 2005-start Stooq pull."
+      - filename: "BATS_COIN, 1D.csv"
+        sha256: "6f4cc95b571a0d492ad56760ad91d319082327676b9740ab9604ffe66d940890"
+        bytes: 193279
+        data_rows: 1183
+        date_range: "2021-04-14 13:30 UTC through 2025-12-26 14:30 UTC"
+        columns: ["time", "close", "20w SMA", "21w EMA", "Up Trend", "Down Trend", "Macro Score Heatmap", "Rate Hike", "Rate Cut", "LA1", "LA2", "ATR", "MACD", "Signal Line", "Histogram", "Cross"]
+        price_treatment: "TradingView/BATS daily close; corporate-action treatment must be checked before use."
+        role: "Optional COIN experiment, not an official score input."
+      - filename: "btc-usd-max (1).csv"
+        sha256: "4f8c084554dc6de65dcbbd2c74d61acdd8973e4a9cf9ea4d1f5b07076d6b55c1"
+        bytes: 346888
+        data_rows: 4625
+        date_range: "2013-04-28 through 2025-12-27 UTC"
+        columns: ["snapped_at", "price", "market_cap", "total_volume"]
+        role: "Experimental BTC YouTuber/ITC emulation."
+      - filename: "eth-usd-max.csv"
+        sha256: "987456548d276699f200d8087aeae3a6508f201b8e9cd57c550dd228c1ea68d6"
+        bytes: 300815
+        data_rows: 3795
+        date_range: "2015-08-07 through 2025-12-27 UTC"
+        columns: ["snapped_at", "price", "market_cap", "total_volume"]
+        role: "Experimental ETH YouTuber/ITC emulation."
+      - filename: "risk_model_outputs_v3.xlsx"
+        sha256: "db9ac88a81d5c45e25bfe3a41d875a8ef7c866f82ba48350cfc0a7f8d36ef99d"
+        bytes: 1819357
+        workbook_role: >-
+          Snapshot/output workbook for QQQ, COIN, and experimental BTC/ETH models.
+          It is not a complete live core-equity workbook and lacks SPY, IWM, SPX, NDX, and VIX sheets.
+        sheets:
+          - "BTC: A1:I4626"
+          - "ETH: A1:I3796"
+          - "COIN: A1:L1184"
+          - "QQQ: A1:L6744"
+          - "Latest_Levels: A1:G17"
+          - "Params: A1:P5"
+          - "BTC_Ben_Today: A1:B43"
+          - "ETH_Ben_Today: A1:B43"
+          - "BTC_Levels_Model: A1:B43"
+          - "ETH_Levels_Model: A1:B43"
+          - "BTC_Compare_Today: A1:E43"
+          - "ETH_Compare_Today: A1:E43"
+        important_warning: >-
+          The BTC/ETH parameter targets match the December 15, 2025 pasted ladders, not a
+          fully calibrated two-snapshot dynamic model. The December 31, 2025 ladder supplied
+          later is not known to be incorporated in this workbook.
+    series_or_tickers:
+      official_score_inputs: ["SPY", "QQQ"]
+      required_dashboard_assets: ["SPX", "NDX", "SPY", "QQQ", "IWM"]
+      volatility_overlay: ["VIXCLS"]
+      optional_experimental_assets: ["COIN", "BTC", "ETH"]
+      source_aliases:
+        SPX: ["^SPX", "SPX", "FRED SP500"]
+        NDX: ["^NDX", "NDX", "FRED NASDAQ100"]
+        SPY: ["SPY.US", "SPY"]
+        QQQ: ["QQQ.US", "QQQ"]
+        IWM: ["IWM.US", "IWM"]
+        VIX: ["VIXCLS", "^VIX"]
+    history_windows:
+      SPY_CANONICAL: "1999-01-04 onward, using the uploaded adjusted-history base plus validated continuation."
+      QQQ_CANONICAL: "1999-03-10 onward, using the uploaded adjusted-history base plus validated continuation."
+      IWM_CANONICAL: "2000-05-26 onward, using the uploaded adjusted-history base plus validated continuation."
+      SPX_MODERN_1999: "1999-01-04 onward, aligned to SPY for dashboard comparison."
+      NDX_MODERN_1999: "1999-03-10 onward, aligned to QQQ for dashboard comparison."
+      SPX_FULL_HISTORY: >-
+        Full Stooq history when available. Earlier pulls began 1789-05-01 and included
+        early monthly/irregular observations; this is contextual only and must be labeled.
+      NDX_FULL_HISTORY: "Full Stooq history when available; earlier pulls began 1985-10-01."
+      VIX_FULL_HISTORY: "1990 onward using Cboe/FRED daily closes."
+      rule: >-
+        The Supervisor comparison table should use SPX_MODERN_1999 and NDX_MODERN_1999.
+        Full-history index readings are separate context and never enter the official ETF score.
+    adjusted_or_unadjusted_prices:
+      current_canonical_policy: >-
+        Use the uploaded SPY/QQQ/IWM Close columns as adjusted histories because their levels
+        appear yfinance auto-adjusted. Preserve the same treatment in all appended rows.
+      unresolved_source_issue: >-
+        Stooq and emergency fallback close series may not have identical dividend-adjustment
+        treatment. Validate overlaps around distributions and do not append a nominal close to
+        an adjusted series merely because one recent date matches.
+      volume: "Volume is not used by the Risk Engine."
+      index_prices: "Index closes are naturally non-dividend total-return series unless a total-return index is explicitly selected."
+    splice_or_proxy_rules:
+      - "Sort ascending by date, retain one row per market date, and use positive finite closes only."
+      - "For uploaded ETF histories, keep uploaded rows through 2025-12-26 and append only rows after that date from a validated source."
+      - "Require overlap validation on several dates, not one date; compare levels and returns and inspect dividend dates."
+      - "Never skip a multi-month gap and then continue an EMA from the endpoint as though no sessions occurred. Obtain the complete daily bridge."
+      - "If a complete bridge is unavailable, report N/A or explicitly label a proxy continuation and lower confidence."
+      - "If long-run dev_low/dev_high are held fixed instead of recomputed, disclose the calibration date and fixed-band method."
+      - "Proxy index paths may be used only for provisional context; do not label them exact modern-window index readings."
+    asof_selection_rule: >-
+      Use the latest completed market close common to the equity/index series. Report the exact
+      last observed date for every row. If VIX or another source lags, retain its true date rather
+      than silently forward-filling it.
+    incomplete_row_rule:
+      - "Exclude the current day's row before the market close in America/Chicago."
+      - "Treat a current-day row with partial volume or an unfinished timestamp as intraday and exclude it from close-based reports."
+      - "Do not assume that the final API/CSV row is complete merely because it has today's date."
+      - "For 24/7 crypto, define the UTC daily cutoff explicitly and do not mix it with U.S. equity close dates without labeling."
+
+  calculations:
+    formulas:
+      ema_alpha: "alpha(h) = 1 - exp(log(0.5) / h)"
+      ema_recursion: "EMA_t = alpha * x_t + (1 - alpha) * EMA_(t-1); initialize EMA_0 = x_0"
+      log_price: "logP[t] = ln(price[t])"
+      trend: "trend[t] = EMA(logP, halflife=504 observations, adjust=False)"
+      deviation: "dev[t] = logP[t] - trend[t]"
+      deviation_bands:
+        dev_low: "quantile(dev[0:t], 0.05) using the full available as-of sample and linear interpolation"
+        dev_high: "quantile(dev[0:t], 0.95) using the full available as-of sample and linear interpolation"
+      log_price_bands:
+        logP0: "logP0[t] = trend[t] + dev_low"
+        logP1: "logP1[t] = trend[t] + dev_high"
+      normalized_position: "u[t] = (logP[t] - logP0[t]) / (logP1[t] - logP0[t])"
+      risk_raw: "risk_raw[t] = min(1, max(0, u[t]))"
+      risk_smooth: "risk_smooth[t] = EMA(risk_raw, halflife=28 observations, adjust=False)"
+      price_at_r: "price_at_r[t] = exp(logP0[t] + r * (logP1[t] - logP0[t])) for r in {0.2, 0.5, 0.8, 0.9}"
+      spot_vs_r: "spot_vs_r = spot / price_at_r - 1; positive means spot is above the risk-level price"
+      delta_4w: "delta_4w = risk_smooth[t] - risk_smooth[t-20], or nearest available completed session when exactly 20 is unavailable"
+      etf_composite: "ETF_composite_risk = 0.60 * SPY_risk_smooth + 0.40 * QQQ_risk_smooth"
+      module_score: "SCORE_0_100 = round(100 * ETF_composite_risk)"
+    transformations:
+      - "Parse dates as timezone-aware when timestamps are supplied; normalize equity rows to market dates."
+      - "Sort ascending and remove duplicate dates before EMA calculations."
+      - "Reject zero, negative, nonfinite, or missing prices before taking logs."
+      - "Use one observation per trading session; the 504 and 28 halflives are observation counts, not calendar-day halflives."
+      - "For irregular or early monthly index history, either trim to a daily era or use a time-aware EMA; do not silently call 504 rows two years."
+      - "Retain sufficient precision internally; round only display outputs."
+    derived_metrics:
+      required_per_asset:
+        - "ASOF"
+        - "SPOT"
+        - "RISK_RAW"
+        - "RISK_SMOOTH"
+        - "DELTA_4W"
+        - "PRICE_R0.2"
+        - "PRICE_R0.5"
+        - "PRICE_R0.8"
+        - "PRICE_R0.9"
+        - "SPOT_VS_R0.2"
+        - "SPOT_VS_R0.5"
+        - "SPOT_VS_R0.8"
+        - "SPOT_VS_R0.9"
+        - "HISTORY_METHOD"
+      additional:
+        - "ETF_composite_risk"
+        - "Quant SCORE_0_100"
+        - "VIX term-structure metric when available"
+        - "Current-versus-prior changes"
+        - "Classification: risk rising, risk easing but still elevated, broadening extension, narrowing extension, meaningful de-extension, or regime break"
+    experimental_itc_youtuber_branch:
+      status: "Separate research branch; never substitute for the official equity engine without approval."
+      BTC_model_in_v3_workbook:
+        day_index: "calendar days since 2013-04-28 plus 1"
+        trend_log: "-4.701056195372109 + 1.80044094191483 * ln(day_index)"
+        log_P0: "trend_log - 0.03095704578873359"
+        log_P1: "trend_log + 2.196048223178082"
+        normalized_u: "clamp((log_price - log_P0) / (log_P1 - log_P0), 0, 1)"
+        shape: >-
+          Monotonic piecewise-linear g(u) built from the December 15, 2025 published
+          BTC risk-price ladder. For every published pair (r_i, p_i), calculate
+          u_i=(ln(p_i)-ln(P0_target))/(ln(P1_target)-ln(P0_target)), then interpolate g(u_i)=r_i.
+        risk_raw: "g(normalized_u)"
+        inverse_price_ladder: "u = inverse_g(r); price_at_r = exp(log_P0 + u * (log_P1 - log_P0))"
+        fitted_snapshot_endpoints: "P0=35000 and P1=324522 from the December 15, 2025 ladder"
+      ETH_model_in_v3_workbook:
+        day_index: "calendar days since 2015-08-07 plus 1"
+        trend_log: "-8.915589250273333 + 2.059783215792989 * ln(day_index)"
+        log_P0: "trend_log - 1.823458744548333"
+        log_P1: "trend_log + 1.342802183140254"
+        risk_raw: "identity mapping: normalized_u"
+        price_at_r: "exp(log_P0 + r * (log_P1 - log_P0))"
+        fitted_snapshot_endpoints: "P0=511.36 and P1=12128.76 from the December 15, 2025 ladder"
+      smoothing: "The workbook applies the same 28-observation EMA to experimental risk_raw."
+      warning: >-
+        Exact fit to one published ladder is interpolation, not proof that the YouTuber uses this
+        mechanism. Use the December 31, 2025 snapshot and future snapshots for out-of-sample calibration.
+
+  interpretation:
+    low_risk_regime: >-
+      Asset risk near r0.2 or module score 0-35 indicates deep de-extension relative to this
+      model's trend and historical deviation distribution. This can support faster DCA, subject
+      to liquidity, credit, macro, and portfolio constraints.
+    neutral_regime: >-
+      Asset risk near r0.5 or module score roughly 35-60 is approximately mid-band/neutral within
+      the model. It is not a statement of fair fundamental value.
+    high_risk_regime: >-
+      Asset risk around r0.8 or module score 60-80 indicates material extension and generally
+      supports slower contributions. A fall to r0.8 should be called meaningfully de-extended,
+      not cheap.
+    extreme_regime: >-
+      Asset risk around r0.9-1.0 or module score 80-100 indicates extreme extension. A move to
+      r0.9 is only an initial de-extension from the extreme regime. risk_smooth can remain high
+      after spot crosses a lower risk_raw band because smoothing lags.
+
+  supervisor_integration:
+    official_score_field: "SCORE_0_100"
+    confidence_definition: >-
+      CONFIDENCE_0_100 measures data quality and signal clarity, not prediction confidence.
+      Raise confidence when all series share a completed as-of date, full daily bridges are present,
+      adjustedness is consistent, and bands are freshly recomputed. Lower it for stale data, proxy
+      paths, fixed bands, source-treatment ambiguity, missing term structure, or incomplete index histories.
+    key_metrics_required:
+      required_snapshot_rows: ["SPX", "NDX", "SPY", "QQQ", "IWM"]
+      required_fields_per_row:
+        - "ASOF date"
+        - "Spot price"
+        - "risk_raw"
+        - "risk_smooth"
+        - "Four-week change in risk_smooth"
+        - "price_at_r0.2"
+        - "price_at_r0.5"
+        - "price_at_r0.8"
+        - "price_at_r0.9"
+        - "Spot_vs_r0.2"
+        - "Spot_vs_r0.5"
+        - "Spot_vs_r0.8"
+        - "Spot_vs_r0.9"
+        - "History window/method"
+      required_index_context:
+        - "SPX_MODERN_1999 for comparison with SPY"
+        - "SPX_FULL_HISTORY as separately labeled context when available"
+        - "NDX_MODERN_1999 for comparison with QQQ"
+        - "NDX_FULL_HISTORY as separately labeled context when available"
+      required_vix_fields:
+        - "VIX spot"
+        - "VIX risk_raw"
+        - "VIX risk_smooth"
+        - "VIX delta_4w"
+        - "VIX price_at_r0.8"
+        - "VIX price_at_r0.9"
+        - "VIX term-structure metric or N/A"
+        - "VIX source and history window"
+      required_change_table:
+        - "Quant score: current, prior, change"
+        - "SPY risk_smooth: current, prior, change"
+        - "QQQ risk_smooth: current, prior, change"
+        - "IWM risk_smooth: current, prior, change"
+        - "ETF composite: current, prior, change"
+        - "VIX risk_smooth: current, prior, change"
+    change_my_mind_triggers:
+      increase_toward_0_75x: >-
+        A reasonable Quant contribution is met when SPY or QQQ approaches or falls below its
+        current r0.8 price, the affected asset's risk_raw is near/below 0.8, risk_smooth is falling,
+        and the ETF composite is no longer pinned near the extreme zone. The Supervisor must also
+        confirm that credit remains orderly.
+      return_toward_1_0x: >-
+        A reasonable Quant contribution is met when both SPY and QQQ are materially de-extended,
+        ETF_composite_risk is below 0.85 and falling, and neither asset immediately re-accelerates
+        above r0.9. Other Supervisor modules must confirm the regime.
+      reduce_toward_0_50x_or_below: >-
+        A reasonable Quant contribution is met when ETF_composite_risk is at or above 0.95,
+        SPY and QQQ are both above r0.9 with flat/rising risk_smooth, or a volatility shock occurs
+        while the Supervisor's credit module reports widening stress.
+      hard_rule: >-
+        Triggers are conditions for Supervisor review, not automatic trades. Combine price and
+        risk_smooth whenever possible, and do not call r0.8 or r0.9 cheap.
+    overlap_with_other_modules:
+      valuation: "Both can signal caution at high prices, but QuantRisk measures trend extension; Valuation measures fundamentals/expected returns."
+      sentiment_technicals: "Momentum, breadth, and volatility may overlap; Quant should keep only price-band and simple VIX context."
+      liquidity_credit: "Credit stress may affect DCA triggers but must come from the Liquidity/Credit module, not be recreated here."
+      macro_policy: "Macro catalysts can explain moves but do not enter the official Quant score."
+    double_counting_warnings:
+      - "Do not add full-history SPX/NDX to the SPY/QQQ score; that would count the same equity exposure twice and mix windows."
+      - "Do not add IWM without a formally approved methodology change; it is a diagnostic, not a hidden score component."
+      - "Do not add VIX to the official score merely because it is reported; it is an overlay with different economic meaning."
+      - "Do not import valuation or credit scores into QuantRisk. State cross-module conditions as Supervisor dependencies."
+
+  latest_state:
+    asof:
+      latest_reported_market_state: "2026-08-14 close"
+      handoff_preparation_date: "2026-08-24"
+      status: >-
+        Latest reported state was a continuation estimate, not a clean full-history recomputation.
+        It continued a June 26 model state using observed daily closes and fixed long-run bands.
+      next_prior_comparison_baseline: "Use the 2026-08-14 report as the prior report for the next Quant update."
+    score: 97
+    confidence: 84
+    top_drivers:
+      - "SPY risk_smooth=0.992 and risk_raw=1.000; spot 776.34 was above price_at_r0.9 707.20."
+      - "QQQ risk_smooth=0.942 remained highly extended despite delta_4w=-0.008."
+      - "IWM risk_smooth=0.962 and delta_4w=+0.015 indicated extension broadening into small caps."
+    key_metrics:
+      ETF_composite_risk:
+        value: 0.972
+        asof: "2026-08-14 close"
+      SPY:
+        spot: 776.34
+        risk_raw: 1.000
+        risk_smooth: 0.992
+        delta_4w: 0.001
+        price_at_r0_2: 444.39
+        price_at_r0_5: 542.30
+        price_at_r0_8: 661.78
+        price_at_r0_9: 707.20
+        history_method: "Uploaded adjusted-history base plus continuation estimate; fixed long-run bands."
+      QQQ:
+        spot: 731.07
+        risk_raw: 0.957
+        risk_smooth: 0.942
+        delta_4w: -0.008
+        price_at_r0_2: 326.52
+        price_at_r0_5: 449.35
+        price_at_r0_8: 618.38
+        price_at_r0_9: 687.82
+        history_method: "Uploaded adjusted-history base plus continuation estimate; fixed long-run bands."
+      IWM:
+        spot: 305.09
+        risk_raw: 1.000
+        risk_smooth: 0.962
+        delta_4w: 0.015
+        price_at_r0_2: 193.65
+        price_at_r0_5: 228.17
+        price_at_r0_8: 268.86
+        price_at_r0_9: 283.97
+        history_method: "Uploaded adjusted-history base plus continuation estimate; fixed long-run bands."
+      SPX_FULL_HISTORY_CONTEXT:
+        spot: 7785.76
+        risk_raw: 0.922
+        risk_smooth: 0.881
+        delta_4w: 0.011
+        price_at_r0_2: 4661.21
+        price_at_r0_5: 5768.79
+        price_at_r0_8: 7139.54
+        price_at_r0_9: 7665.36
+        history_method: "Approximate full-history/proxy continuation context; not the required modern-window reading."
+      SPX_MODERN_1999:
+        value: "N/A"
+        reason: "Not freshly calculated in the 2026-08-14 continuation report."
+      NDX_FULL_HISTORY_CONTEXT:
+        spot: 30046.14
+        risk_raw: 0.781
+        risk_smooth: 0.755
+        delta_4w: -0.003
+        price_at_r0_2: 17740.24
+        price_at_r0_5: 23283.72
+        price_at_r0_8: 30559.44
+        price_at_r0_9: 33458.76
+        history_method: "Approximate full-history/proxy continuation context; not the required modern-window reading."
+      NDX_MODERN_1999:
+        value: "N/A"
+        reason: "Not freshly calculated in the 2026-08-14 continuation report."
+      VIX:
+        spot: 14.25
+        risk_raw: 0.186
+        risk_smooth: 0.385
+        delta_4w: -0.035
+        price_at_r0_2: 14.44
+        price_at_r0_5: 19.17
+        price_at_r0_8: 25.47
+        price_at_r0_9: 27.99
+        term_structure: "N/A"
+        history_method: "Cboe/FRED full history from 1990; full-history recomputation was reported."
+    triggers:
+      - "SPY below 707.20 with SPY risk_smooth below 0.95 would mark an initial de-extension from the extreme regime."
+      - "QQQ below 687.82 with QQQ risk_smooth below 0.90 would mark an initial de-extension from the extreme regime."
+      - "ETF composite below 0.85 with both SPY and QQQ materially de-extended would support review of a return toward baseline DCA."
+    latest_state_warning: >-
+      Do not use the August 14 levels as a substitute for a fresh update after August 14.
+      They are the latest state in this thread, not current market data as of the handoff date.
+
+  output_contract:
+    human_readable_sections:
+      - "Title and exact ASOF date(s), with explicit completed-close rule."
+      - "Data sources, adjustedness, history windows, splices, fixed bands, proxies, and confidence caveats."
+      - "Required risk snapshot table for SPX, NDX, SPY, QQQ, and IWM."
+      - "Separate modern-window and full-history SPX/NDX context."
+      - "SPX/NDX trend-extension interpretation and four-week direction."
+      - "SPY/QQQ first de-extension r0.9, meaningful de-extension r0.8, major reset r0.5, and deep de-extension r0.2, including declines from spot."
+      - "Statement that risk-band prices are not forecasts, supports, or guarantees."
+      - "VIX overlay and term structure when available."
+      - "Current-versus-prior table and one regime classification."
+      - "Quant score, formula, Quant-only DCA implication, and cross-module dependencies."
+    required_snapshot_table_header: >-
+      | Asset | As-of | Spot | risk_raw | risk_smooth | delta_4w | p@r0.2 | p@r0.5 | p@r0.8 | p@r0.9 | Spot vs r0.2 | Spot vs r0.5 | Spot vs r0.8 | Spot vs r0.9 | History/Method |
+    supervisor_packet:
+      title: "SUPERVISOR PACKET (COPY/PASTE)"
+      format_rules:
+        - "The packet must be the final analytical section before the CSV block."
+        - "Use one triple-backtick plain-text block."
+        - "Use the exact keys and include every required metric even when its value is N/A."
+        - "Every metric line must include its as-of date."
+        - "Keep bullets to one line."
+      exact_template: |
+        MODULE: QuantRisk
+        ASOF: YYYY-MM-DD close
+        SCORE_0_100: NN
+        CONFIDENCE_0_100: NN
+        TOP_3_DRIVERS:
+        - one-line driver
+        - one-line driver
+        - one-line driver
+        CHANGE_MY_MIND (TRIGGERS):
+        - one-line trigger
+        - one-line trigger
+        - one-line trigger
+        KEY_METRICS:
+        - ETF_composite_risk=value (YYYY-MM-DD close)
+        - SPY_spot=value (YYYY-MM-DD close)
+        - SPY_risk_raw=value (YYYY-MM-DD close)
+        - SPY_risk_smooth=value (YYYY-MM-DD close)
+        - SPY_price_at_r0.2=value (YYYY-MM-DD close)
+        - SPY_price_at_r0.5=value (YYYY-MM-DD close)
+        - SPY_price_at_r0.8=value (YYYY-MM-DD close)
+        - SPY_price_at_r0.9=value (YYYY-MM-DD close)
+        - QQQ_spot=value (YYYY-MM-DD close)
+        - QQQ_risk_raw=value (YYYY-MM-DD close)
+        - QQQ_risk_smooth=value (YYYY-MM-DD close)
+        - QQQ_price_at_r0.2=value (YYYY-MM-DD close)
+        - QQQ_price_at_r0.5=value (YYYY-MM-DD close)
+        - QQQ_price_at_r0.8=value (YYYY-MM-DD close)
+        - QQQ_price_at_r0.9=value (YYYY-MM-DD close)
+        - IWM_spot=value (YYYY-MM-DD close)
+        - IWM_risk_raw=value (YYYY-MM-DD close)
+        - IWM_risk_smooth=value (YYYY-MM-DD close)
+        - IWM_price_at_r0.2=value (YYYY-MM-DD close)
+        - IWM_price_at_r0.5=value (YYYY-MM-DD close)
+        - IWM_price_at_r0.8=value (YYYY-MM-DD close)
+        - IWM_price_at_r0.9=value (YYYY-MM-DD close)
+        - SPX_spot=value (YYYY-MM-DD close)
+        - SPX_risk_smooth_modern_window=value (YYYY-MM-DD close)
+        - SPX_price_at_r0.2=value (YYYY-MM-DD close)
+        - SPX_price_at_r0.5=value (YYYY-MM-DD close)
+        - SPX_price_at_r0.8=value (YYYY-MM-DD close)
+        - SPX_price_at_r0.9=value (YYYY-MM-DD close)
+        - NDX_spot=value (YYYY-MM-DD close)
+        - NDX_risk_smooth_modern_window=value (YYYY-MM-DD close)
+        - NDX_price_at_r0.2=value (YYYY-MM-DD close)
+        - NDX_price_at_r0.5=value (YYYY-MM-DD close)
+        - NDX_price_at_r0.8=value (YYYY-MM-DD close)
+        - NDX_price_at_r0.9=value (YYYY-MM-DD close)
+        - VIX_spot=value (YYYY-MM-DD close)
+        - VIX_risk_smooth=value (YYYY-MM-DD close)
+        - VIX_price_at_r0.8=value (YYYY-MM-DD close)
+        - VIX_price_at_r0.9=value (YYYY-MM-DD close)
+        NOTES:
+        - one-line caveat including data gaps, history method, adjustedness, and unusual assumptions
+    spreadsheet_or_csv_output:
+      placement: "Immediately after the Supervisor Packet."
+      block_type: "One additional triple-backtick CSV block."
+      exact_header: "ASOF,ASSET,SPOT,RISK_RAW,RISK_SMOOTH,DELTA_4W,PRICE_R0.2,PRICE_R0.5,PRICE_R0.8,PRICE_R0.9,SPOT_VS_R0.2,SPOT_VS_R0.5,SPOT_VS_R0.8,SPOT_VS_R0.9,HISTORY_METHOD"
+      required_rows: ["SPX", "NDX", "SPY", "QQQ", "IWM", "VIX"]
+      vix_rule: "Use N/A only for fields genuinely unavailable or inapplicable, especially term structure outside this CSV schema."
+
+  known_caveats:
+    - >-
+      dev_low and dev_high depend on the full history window. Different start dates or regimes can
+      create large differences even for near-identical underlying exposure.
+    - >-
+      Constant scale differences such as SPY being roughly one-tenth of SPX do not explain the gap;
+      log transformation and de-trending remove constant multiplicative scale.
+    - >-
+      SPX full-history data previously included very early monthly/irregular observations, so a
+      504-row EMA is not consistently a two-year EMA across that series.
+    - >-
+      The uploaded ETF files appear adjusted, while fallback sources may be nominal close series.
+      Inconsistent dividend treatment can alter the long-run deviation distribution.
+    - >-
+      Full-sample quantiles are acceptable for live as-of monitoring but create lookahead bias if
+      used unchanged in a historical backtest. Backtests need expanding or rolling quantiles.
+    - "risk_smooth is deliberately lagging; spot can cross r0.8 while risk_smooth remains above 0.8."
+    - "price_at_r levels move as trend and quantile bands update and should not be treated as static support."
+    - "VIX uses the same mathematical scale but has opposite practical semantics from equity extension."
+    - "The June 26 and August 14, 2026 equity reports used continuation estimates and fixed bands."
+    - "The experimental BTC/ETH workbook exactly fits one ladder snapshot and is not validated as the YouTuber's true formula."
+
+  known_failure_modes:
+    - "Including an incomplete current-day row in a close-based report."
+    - "Comparing SPX full-history risk with SPY modern-window risk as though they share one calibration."
+    - "Appending unadjusted closes to an adjusted history, especially across dividend dates."
+    - "Skipping missing daily sessions in a splice and thereby corrupting EMA trend and risk_smooth."
+    - "Presenting fixed-band continuation values as a fresh full-history recomputation."
+    - "Using proxy index paths without labeling them approximate."
+    - "Recomputing historical performance with full-future-sample quantiles and calling it lookahead-free."
+    - "Using calendar-day halflives on one asset and observation-count halflives on another without disclosure."
+    - "Rounding intermediate calculations too early."
+    - "Calling r0.8 or r0.9 cheap, or treating price_at_r as a forecast or guaranteed support level."
+    - "Allowing VIX, IWM, SPX, or NDX to drift into the official score without formal approval."
+
+  files_or_code_needed_for_reproduction:
+    minimum_files:
+      - "SPY_historical_data.csv"
+      - "QQQ_historical_data.csv"
+      - "IWM_historical_data.csv"
+      - "A complete daily continuation for each ETF from 2025-12-29 through the desired ASOF date, with consistent adjustedness"
+      - "SPX and NDX daily histories sufficient for both modern-window and full-history variants"
+      - "VIX daily history from Cboe or FRED"
+    optional_experimental_files:
+      - "BATS_COIN, 1D.csv"
+      - "btc-usd-max (1).csv"
+      - "eth-usd-max.csv"
+      - "risk_model_outputs_v3.xlsx"
+    code_requirements:
+      - "Deterministic parser for the three-row yfinance-style ETF CSV headers."
+      - "EMA implementation matching pandas ewm(halflife=h, adjust=False, min_periods=0)."
+      - "Linear 5th/95th quantiles matching numpy.quantile default linear method."
+      - "Functions for risk_raw, risk_smooth, price_at_r, spot_vs_r, delta_4w, and official score."
+      - "Modern/full history switch for SPX and NDX."
+      - "Data-quality audit log storing source, fetch time, as-of, treatment, splice boundary, overlap tests, and fixed-band status."
+      - "Persistent per-asset daily history or sufficient state; exact quantile recomputation requires the full dev history, not only the latest EMA state."
+    deterministic_test_fixtures_from_uploaded_files:
+      SPY_2025_12_26:
+        dev_low: -0.21496076081706295
+        dev_high: 0.44640374315131187
+        risk_raw: 1.0
+        risk_smooth: 0.9902766253271554
+        delta_4w_20_sessions: 0.005041629156130156
+        price_at_r0_2: 401.33246349034664
+        price_at_r0_5: 489.40947976853505
+        price_at_r0_8: 596.8160083642703
+        price_at_r0_9: 637.6218031795744
+      QQQ_2025_12_26:
+        dev_low: -0.4310183623750675
+        dev_high: 0.6399819596397465
+        risk_raw: 0.9256554977445975
+        risk_smooth: 0.9208914491037786
+        delta_4w_20_sessions: 0.0017056069742350521
+        price_at_r0_2: 286.80335953065827
+        price_at_r0_5: 395.4786957395883
+        price_at_r0_8: 545.3332172950608
+        price_at_r0_9: 606.9807322152335
+      IWM_2025_12_26:
+        dev_low: -0.14953250892067627
+        dev_high: 0.40090574902138165
+        risk_raw: 0.821953596392444
+        risk_smooth: 0.7762091605826392
+        delta_4w_20_sessions: 0.029824677114499876
+        price_at_r0_2: 178.533772692958
+        price_at_r0_5: 210.58918886694363
+        price_at_r0_8: 248.40009707242604
+        price_at_r0_9: 262.4562933498076
+    workbook_cached_parameters:
+      QQQ_dev_low: -0.4310183623750553
+      QQQ_dev_high: 0.6399819596397741
+      COIN_dev_low: -1.545992686099384
+      COIN_dev_high: 0.589782968617408
+      note: "The workbook values agree with an independent QQQ recomputation to floating-point precision."
+
+  unresolved_questions:
+    - "Should the canonical ETF series be formally defined as dividend-adjusted total-return-like close or nominal split-adjusted close? Current files imply adjusted data."
+    - "Which reliable provider will supply a complete, consistent daily continuation after 2025-12-26?"
+    - "Should dev_low/dev_high be recomputed every live update, or frozen at a formal calibration date? Durable specification says recompute; fixed bands were only an emergency continuation method."
+    - "Should delta_4w be exactly 20 completed sessions or nearest observation to 28 calendar days? Current implementation uses 20 sessions."
+    - "Should SPX/NDX modern windows use their corresponding ETF start dates separately or one common date for all assets? Current recommendation uses SPY and QQQ inception-aligned dates."
+    - "Should the full-history SPX series be trimmed to a reliable daily era before contextual calculation?"
+    - "Which VIX term-structure metric should be standardized: VIX/VIX3M, front/second futures ratio, or another series?"
+    - "What display precision should be mandatory for scores, risks, distances, and price levels?"
+    - "How should holidays and mismatched VIX/equity dates be represented in the CSV and Supervisor Packet?"
+    - "For the YouTuber/ITC project, what objective function and parameter family should be fitted jointly across the December 15 and December 31, 2025 ladders and future snapshots?"
+
+  recommended_next_improvements:
+    - "Build one version-controlled script/notebook that downloads, validates, computes, and emits the full mandated report without manual bridges."
+    - "Create a persistent local daily-price cache with source and adjustment metadata so a blocked provider does not force proxy continuations."
+    - "Add automated overlap tests for levels, daily returns, splits, and dividends before every splice."
+    - "Add unit tests using the three deterministic 2025-12-26 ETF fixtures in this handoff."
+    - "Produce full SPY, QQQ, IWM, SPX_MODERN, SPX_FULL, NDX_MODERN, NDX_FULL, and VIX sheets in a new canonical workbook; do not rely on risk_model_outputs_v3.xlsx for the live core."
+    - "Store both freshly recomputed bands and any fixed-band continuation bands, with calibration dates, so they cannot be confused."
+    - "Use a clean daily-era SPX history or a time-aware EMA for irregular early data."
+    - "Standardize a VIX term-structure source and calculate the metric automatically."
+    - "For backtests, implement expanding quantiles and compare them with the live full-as-of-sample implementation."
+    - "Keep the ITC/YouTuber emulation in a separate code path and fit all available ladder snapshots jointly, reserving later snapshots for out-of-sample validation."
+
+# NOTE — recorded at intake, not analysis:
+# latest_state.asof = "2026-08-14 close", score 97, confidence 84. These are identical to the
+# QuantRisk entry already in supervisor/continuity_snapshot.yaml, which the Supervisor holds as the
+# PRIOR run baseline. If this is intended as the CURRENT Quant input, the prior-run comparison for
+# Quant collapses to zero change by construction. Flagged for Jason; not resolved unilaterally.

@@ -1,0 +1,856 @@
+# MODULE TRANSFER HANDOFF — Liquidity/Credit
+#
+# Received from Jason 2026-08-24. Pasted under the label "sentiment packet", but the
+# document's own module_name is "Liquidity/Credit" and its content is entirely
+# credit/funding/reserves. Filed by actual module. See supervisor/modules/INTAKE_LEDGER.md.
+#
+# The Supervisor consumes only latest_state.score and latest_state.confidence.
+
+MODULE_TRANSFER_HANDOFF:
+  module_name: "Liquidity/Credit"
+  mission: >-
+    Assess whether corporate credit, bank reserves, money-market funding, Federal Reserve
+    balance-sheet operations, and broad financial conditions are supportive, neutral, or
+    restrictive for equities. Produce one stable 0-100 risk score in which higher means more
+    financial stress and more caution for the Supervisor's DCA pacing decision.
+
+  boundaries:
+    owns:
+      - "Corporate-credit stress: high-yield, broad investment-grade, BBB, and Baa-Treasury spreads."
+      - "Short-term funding conditions: SOFR relative to IORB, standing-repo usage, ON RRP usage, and calendar-related funding pressure."
+      - "Federal Reserve balance-sheet plumbing: WALCL, reserve balances, TGA, reserve-management purchases, reinvestment purchases, and relevant liquidity facilities."
+      - "Emergency-liquidity indicators: primary credit and central-bank liquidity swaps."
+      - "Broad financial-condition confirmation through NFCI and STLFSI4."
+      - "A limited VIX level-and-direction overlay used only as a stress-transmission check."
+      - "Classification of reserve declines as flow-driven/TGA-related versus genuine reserve scarcity."
+    does_not_own:
+      - "Equity valuation, CAPE, equity-risk premium, or long-horizon expected returns."
+      - "Economic growth, inflation, labor-market forecasting, or the full monetary-policy reaction function; those belong to Macro/Policy."
+      - "Equity trend, breadth, momentum, positioning, put-call ratios, VIX term structure, or tactical chart signals; those belong to Sentiment/Technicals or Quant Risk."
+      - "Portfolio allocation design, security selection, taxable-sale decisions, or the final Supervisor score."
+      - "A prediction of recessions, defaults, or equity returns; the module measures current financial-condition risk."
+
+  risk_scale:
+    direction: "0 is the easiest/least-stressed condition; 100 is acute credit or funding stress."
+    stable_regimes:
+      very_easy:
+        range: "0-14"
+        meaning: "Credit is calm, funding is orderly, and liquidity is supportive."
+      easy_watchful:
+        range: "15-34"
+        meaning: "Conditions remain supportive but one or more fragility indicators deserve monitoring."
+      neutral:
+        range: "35-54"
+        meaning: "Financial conditions are no longer a clear tailwind; caution should rise."
+      tightening_high_risk:
+        range: "55-74"
+        meaning: "Credit and/or funding stress is materially tightening conditions for equities."
+      acute_extreme:
+        range: "75-100"
+        meaning: "Crisis-like credit, funding, or facility usage; strong defensive signal."
+    invariant: >-
+      Never invert or redefine the scale. Low ON RRP, a high TGA, or a one-day VIX spike cannot
+      by themselves create a high-risk score; confirmation must come from credit spreads,
+      funding prices, repo usage, facilities, or persistent reserve scarcity.
+
+  current_scoring_methodology:
+    formula:
+      overall_score: >-
+        LiquidityCreditScore = round_half_up(clamp(0.50 * CreditStress
+        + 0.25 * VolatilityStress + 0.25 * LiquidityFundingStress, 0, 100)).
+      rounding_rule: "Use floor(unrounded_score + 0.5); retain one decimal internally and publish an integer."
+      credit_stress: >-
+        CreditStress = clamp(0.50 * HY_level_score + 0.15 * IG_level_score
+        + 0.20 * BBB_level_score + 0.15 * BAA10Y_level_score
+        + HY_20d_trend_overlay + cross_spread_confirmation_overlay, 0, 100).
+      volatility_stress: >-
+        VolatilityStress = clamp(VIX_level_score + VIX_5d_direction_overlay
+        + VIX_persistence_overlay, 0, 100). If CreditStress < 30 and FundingMarketScore < 30,
+        cap VolatilityStress at 40 so a volatility-only move does not duplicate the
+        Sentiment/Technicals module or dominate Liquidity/Credit.
+      reserve_buffer_score: >-
+        ReserveBufferScore = 0.40 * absolute_reserve_score
+        + 0.30 * reserve_4w_change_score + 0.15 * ON_RRP_buffer_score
+        + 0.15 * reserve_management_policy_score.
+      funding_market_score: >-
+        FundingMarketScore = 0.60 * SOFR_IORB_score + 0.40 * standing_repo_score.
+      facility_stress: >-
+        FacilityStress = clamp(0.60 * primary_credit_score
+        + 0.40 * central_bank_swap_score, 0, 100).
+      broad_stress: >-
+        BroadStress = 0.50 * NFCI_score + 0.50 * STLFSI4_score.
+      liquidity_funding_stress: >-
+        LiquidityFundingStress = clamp(0.65 * ReserveBufferScore
+        + 0.20 * FundingMarketScore + 0.10 * FacilityStress
+        + 0.05 * BroadStress + genuine_scarcity_overlay, 0, 100).
+      genuine_scarcity_overlay: >-
+        Add 10 points only when the reserve-quantity test, funding-confirmation test,
+        and persistence/attribution test are all satisfied. Otherwise add zero.
+
+    component_weights:
+      top_level:
+        CreditStress: 0.50
+        VolatilityStress: 0.25
+        LiquidityFundingStress: 0.25
+      credit_subweights:
+        HY_OAS: 0.50
+        IG_OAS: 0.15
+        BBB_OAS: 0.20
+        BAA10Y: 0.15
+      reserve_buffer_subweights:
+        absolute_reserve_level: 0.40
+        four_week_reserve_change: 0.30
+        ON_RRP_buffer: 0.15
+        reserve_management_policy: 0.15
+      liquidity_funding_subweights:
+        ReserveBufferScore: 0.65
+        FundingMarketScore: 0.20
+        FacilityStress: 0.10
+        BroadStress: 0.05
+      funding_market_subweights:
+        SOFR_minus_IORB: 0.60
+        standing_repo_usage: 0.40
+      facility_subweights:
+        primary_credit: 0.60
+        central_bank_swaps: 0.40
+
+    normalization:
+      general_rule: >-
+        Use piecewise-linear interpolation between listed anchors, clamp below the first
+        anchor and above the last anchor, and use the observation's native percent units
+        unless a field explicitly says billions, trillions, or basis points.
+
+      credit_level_anchors:
+        HY_OAS_percent:
+          series: "BAMLH0A0HYM2"
+          anchors:
+            - {value: 2.50, score: 0}
+            - {value: 3.25, score: 20}
+            - {value: 4.00, score: 40}
+            - {value: 5.00, score: 60}
+            - {value: 7.00, score: 80}
+            - {value: 10.00, score: 100}
+        IG_OAS_percent:
+          series: "BAMLC0A0CM"
+          anchors:
+            - {value: 0.65, score: 0}
+            - {value: 0.90, score: 20}
+            - {value: 1.20, score: 40}
+            - {value: 1.50, score: 60}
+            - {value: 2.25, score: 80}
+            - {value: 3.50, score: 100}
+        BBB_OAS_percent:
+          series: "BAMLC0A4CBBB"
+          anchors:
+            - {value: 0.80, score: 0}
+            - {value: 1.10, score: 20}
+            - {value: 1.50, score: 40}
+            - {value: 2.00, score: 60}
+            - {value: 3.00, score: 80}
+            - {value: 4.50, score: 100}
+        BAA10Y_percent:
+          series: "BAA10Y"
+          anchors:
+            - {value: 1.25, score: 0}
+            - {value: 1.75, score: 20}
+            - {value: 2.25, score: 40}
+            - {value: 3.00, score: 60}
+            - {value: 4.00, score: 80}
+            - {value: 5.50, score: 100}
+
+      credit_trend_overlays:
+        HY_20d_change_bp:
+          rules:
+            - {condition: "change <= -50 bp", overlay: -8}
+            - {condition: "-50 bp < change <= -25 bp", overlay: -5}
+            - {condition: "-25 bp < change < +25 bp", overlay: 0}
+            - {condition: "+25 bp <= change < +50 bp", overlay: 5}
+            - {condition: "+50 bp <= change < +100 bp", overlay: 10}
+            - {condition: "change >= +100 bp", overlay: 15}
+        cross_spread_confirmation:
+          widening_test: >-
+            Add 5 if at least two of the following 20-trading-day changes occur:
+            IG OAS >= +15 bp, BBB OAS >= +20 bp, BAA10Y >= +25 bp.
+          tightening_test: >-
+            Subtract 3 if all three 20-trading-day changes are at or below
+            IG OAS -15 bp, BBB OAS -20 bp, and BAA10Y -25 bp.
+          missing_data_rule: "Apply no overlay if fewer than two confirming series are current."
+
+      VIX_normalization:
+        level_anchors:
+          - {value: 12, score: 0}
+          - {value: 15, score: 10}
+          - {value: 20, score: 30}
+          - {value: 25, score: 50}
+          - {value: 30, score: 65}
+          - {value: 40, score: 85}
+          - {value: 60, score: 100}
+        five_day_percent_change_overlay:
+          - {condition: "change <= -20 percent", overlay: -10}
+          - {condition: "-20 percent < change <= -5 percent", overlay: -5}
+          - {condition: "-5 percent < change < +5 percent", overlay: 0}
+          - {condition: "+5 percent <= change < +20 percent", overlay: 5}
+          - {condition: "+20 percent <= change < +40 percent", overlay: 10}
+          - {condition: "change >= +40 percent", overlay: 15}
+        persistence_overlay:
+          - {condition: "VIX > 20 on at least 3 of the last 5 completed closes", overlay: 5}
+          - {condition: "VIX > 25 on at least 3 of the last 5 completed closes", overlay: 10}
+          - {condition: "VIX < 15 on all 5 completed closes", overlay: -3}
+        persistence_rule: "Use only the single highest applicable persistence overlay."
+        anti_duplication_cap: >-
+          If both CreditStress and FundingMarketScore are below 30, cap VolatilityStress at 40.
+          VIX alone may move this module from very easy to watchful, but not to high risk.
+
+      reserve_buffer_normalization:
+        absolute_WRESBAL_trillions:
+          anchors:
+            - {value: 2.20, score: 100}
+            - {value: 2.40, score: 95}
+            - {value: 2.60, score: 80}
+            - {value: 2.80, score: 60}
+            - {value: 3.00, score: 35}
+            - {value: 3.15, score: 15}
+            - {value: 3.30, score: 0}
+        four_week_WRESBAL_change_billions:
+          anchors:
+            - {value: -500, score: 100}
+            - {value: -300, score: 85}
+            - {value: -200, score: 70}
+            - {value: -100, score: 50}
+            - {value: -50, score: 30}
+            - {value: 0, score: 10}
+            - {value: 100, score: 0}
+        ON_RRP_billions:
+          interpretation: >-
+            A depleted ON RRP balance is a fragility premium, not direct evidence of stress;
+            therefore its score is capped at 60.
+          anchors:
+            - {value: 0, score: 60}
+            - {value: 1, score: 60}
+            - {value: 5, score: 45}
+            - {value: 25, score: 25}
+            - {value: 100, score: 10}
+            - {value: 500, score: 0}
+        reserve_management_policy_score:
+          rules:
+            - {condition: "planned reserve-management purchases >= 40B for current monthly period", score: 0}
+            - {condition: "planned purchases >= 10B and < 40B", score: 15}
+            - {condition: "planned purchases > 0 and < 10B", score: 25}
+            - {condition: "planned purchases = 0 and WRESBAL >= 3.0T", score: 30}
+            - {condition: "planned purchases = 0 and WRESBAL < 3.0T", score: 60}
+            - {condition: "active balance-sheet runoff/QT", score: 90}
+          notes:
+            - "Agency-principal reinvestment into Treasury bills is not counted as incremental reserve-management purchasing."
+            - "Full-allotment standing repo and authority to purchase bills are backstops, not current reserve injections."
+
+      funding_market_normalization:
+        SOFR_minus_IORB_bp:
+          data_window: "Calculate both 5-day median and 5-day maximum; score each and combine 60 percent median plus 40 percent maximum."
+          anchors:
+            - {value: 0, score: 0}
+            - {value: 5, score: 15}
+            - {value: 10, score: 35}
+            - {value: 20, score: 60}
+            - {value: 40, score: 85}
+            - {value: 75, score: 100}
+          negative_values: "Set negative SOFR-minus-IORB values to zero before scoring."
+        standing_repo_daily_accepted_billions:
+          data_window: >-
+            Exclude announced small-value test operations. Score the 5-day maximum and
+            5-day median separately, then combine 60 percent maximum plus 40 percent median.
+          anchors:
+            - {value: 1, score: 0}
+            - {value: 10, score: 20}
+            - {value: 25, score: 40}
+            - {value: 50, score: 60}
+            - {value: 100, score: 80}
+            - {value: 200, score: 100}
+        calendar_adjustment: >-
+          For an isolated spike occurring in the last two or first two business days of a
+          month or quarter, or around a major tax date, multiply the SOFR and repo scores by
+          0.5 only if SOFR-minus-IORB is <= 10 bp, accepted repo normalizes to <= 5B on the
+          next business day, and HY OAS does not widen by more than 25 bp. Remove the discount
+          if pressure persists for two or more sessions after the calendar turn.
+
+      facility_normalization:
+        primary_credit_billions:
+          anchors:
+            - {value: 10, score: 0}
+            - {value: 25, score: 20}
+            - {value: 50, score: 40}
+            - {value: 100, score: 65}
+            - {value: 250, score: 85}
+            - {value: 500, score: 100}
+        central_bank_swaps_billions:
+          anchors:
+            - {value: 1, score: 0}
+            - {value: 5, score: 20}
+            - {value: 25, score: 40}
+            - {value: 100, score: 65}
+            - {value: 250, score: 85}
+            - {value: 500, score: 100}
+        trend_note: >-
+          Level is primary. A one-week increase of at least 50 percent should be highlighted,
+          but it does not add a separate score unless a threshold anchor is crossed.
+
+      broad_stress_normalization:
+        NFCI:
+          anchors:
+            - {value: -0.50, score: 0}
+            - {value: 0.00, score: 20}
+            - {value: 0.50, score: 50}
+            - {value: 1.00, score: 75}
+            - {value: 2.00, score: 100}
+        STLFSI4:
+          anchors:
+            - {value: -0.50, score: 0}
+            - {value: 0.00, score: 20}
+            - {value: 1.00, score: 50}
+            - {value: 2.00, score: 75}
+            - {value: 4.00, score: 100}
+        role: >-
+          These indexes are only a 5 percent liquidity-subscore cross-check because they
+          already embed credit and volatility information used elsewhere in this module.
+
+      genuine_scarcity_test:
+        reserve_quantity_test: "WRESBAL < 2.8T OR four-week WRESBAL change < -200B."
+        funding_confirmation_test: >-
+          At least one: SOFR-minus-IORB > 10 bp on 3 of 5 business days; accepted standing-repo
+          usage > 10B on 3 of 5 days; accepted repo > 25B on one non-calendar-turn day;
+          primary credit > 25B and rising at least 50 percent week over week.
+        persistence_or_attribution_test: >-
+          Either TGA explains less than 60 percent of the four-week reserve decline, or reserve
+          and funding pressure persists through two weekly observations after TGA stabilizes
+          or declines.
+        result: "Add 10 points to LiquidityFundingStress only when all three tests pass."
+
+    thresholds:
+      credit_watch:
+        - "HY OAS >= 3.5 percent or 20-day widening >= 50 bp."
+        - "IG OAS >= 1.2 percent, BBB OAS >= 1.5 percent, or BAA10Y >= 2.25 percent."
+      credit_confirmation:
+        - >-
+          Primary rule: HY OAS >= 4.0 percent and rising over 20 trading days, with at least
+          one of IG OAS >= 1.25 percent, BBB OAS >= 1.50 percent, or BAA10Y >= 2.25 percent.
+        - >-
+          Alternative shock rule: HY OAS widens 75-100 bp from its 20-day low and at least
+          two confirming credit series meet their 20-day widening thresholds.
+      severe_credit_stress:
+        - "HY OAS >= 6.0 percent."
+        - "Or HY widens >= 200 bp in 20 trading days with IG/BBB confirmation."
+      VIX_watch:
+        - "VIX > 20 for several completed closes."
+        - "VIX > 25 on at least 3 of 5 completed closes is a stronger warning."
+      funding_watch:
+        - "SOFR-minus-IORB > 5 bp or accepted standing-repo usage > 10B."
+      funding_confirmation:
+        - "SOFR-minus-IORB > 10 bp on 3 of 5 business days outside discounted calendar effects."
+        - "Accepted standing-repo usage > 10B on 3 of 5 days or > 25B on one non-calendar day."
+      severe_funding_stress:
+        - "SOFR-minus-IORB > 20 bp for multiple sessions."
+        - "Accepted repo usage > 50B repeatedly or > 100B on a non-calendar day."
+        - "Primary credit > 50B and accelerating, or central-bank swaps > 25B."
+      reserve_watch:
+        - "WRESBAL < 3.0T or a four-week decline > 100B."
+      reserve_scarcity_confirmation:
+        - "The genuine_scarcity_test must pass; absolute reserves alone are insufficient."
+
+    methodology_history:
+      - date: "2025-12"
+        change: >-
+          Initial reports used transparent but judgment-based scoring around tight credit,
+          low VIX, Fed balance-sheet direction, ON RRP depletion, and policy backstops.
+      - date: "2026-01 through 2026-03"
+        change: >-
+          The stable top-level structure became 50 percent credit, 25 percent VIX,
+          and 25 percent liquidity/policy; scores ranged from the low teens to mid-20s.
+      - date: "2026-06"
+        change: "Reports began publishing explicit component scores and the weighted formula."
+      - date: "2026-08-14"
+        change: >-
+          Last pre-handoff published score was 15, using CreditStress 10,
+          VolatilityStress 6, and LiquidityFundingStress 34.
+      - date: "2026-08-24 handoff"
+        change: >-
+          This handoff formalizes the previously judgment-based subscore anchors and overlays
+          without changing the top-level weights, score direction, or regime interpretation.
+          A mechanically reproduced score may differ by approximately 1-3 points from older
+          manually assigned component scores; disclose that transition in NOTES for the first
+          three updates under the formalized implementation.
+
+  data_pipeline:
+    primary_sources:
+      - source: "FRED / ICE BofA Indices"
+        purpose: "HY, broad IG, and BBB option-adjusted spreads."
+        identifiers: ["BAMLH0A0HYM2", "BAMLC0A0CM", "BAMLC0A4CBBB"]
+      - source: "FRED / Federal Reserve Bank of St. Louis"
+        purpose: "Baa minus 10-year Treasury spread."
+        identifiers: ["BAA10Y"]
+      - source: "FRED / Cboe"
+        purpose: "Completed daily VIX closes and direction history."
+        identifiers: ["VIXCLS"]
+      - source: "Federal Reserve H.4.1 through FRED"
+        purpose: "Fed assets, reserve balances, TGA, primary credit, and central-bank swaps."
+        identifiers: ["WALCL", "WRESBAL", "WTREGEN", "WLCFLPCL", "SWPT"]
+      - source: "New York Fed / FRED"
+        purpose: "ON RRP, temporary overnight repo, SOFR, and operation results."
+        identifiers: ["RRPONTSYD", "RPONTSYD", "SOFR"]
+      - source: "Federal Reserve Board / FRED"
+        purpose: "IORB rate."
+        identifiers: ["IORB"]
+      - source: "Chicago Fed and St. Louis Fed through FRED"
+        purpose: "Broad financial-condition confirmation."
+        identifiers: ["NFCI", "STLFSI4"]
+      - source: "New York Fed Treasury Securities Operational Details"
+        purpose: "Current monthly planned reinvestment and reserve-management purchase amounts."
+      - source: "New York Fed standing-repo operation results and FAQ"
+        purpose: "Accepted standing-repo amounts, test-operation identification, operating format, and limits."
+      - source: "Federal Reserve FOMC statement and implementation note"
+        purpose: "Current target range, IORB, repo/RRP rates, reserve-management authority, rollovers, and reinvestment policy."
+      - source: "U.S. Treasury borrowing estimates and quarterly refunding statement"
+        purpose: "TGA cash-balance targets, expected peaks, tax-date context, and issuance-related liquidity interpretation."
+
+    secondary_sources:
+      - source: "Cboe direct VIX page"
+        use: "Use only for the latest completed close when FRED VIXCLS has not yet updated; label the source explicitly."
+      - source: "Reuters or other reputable financial reporting"
+        use: "Context only; never override official FRED, Fed, Treasury, or New York Fed data."
+      - source: "NY Fed Markets Data API"
+        use: "Preferred automation source for operation-level repo data when available."
+
+    uploaded_files:
+      required: []
+      status: "No uploaded file is required for this module."
+      exclusions:
+        - "SPY, QQQ, IWM, crypto price-history files, and the Quant risk workbook are unrelated to Liquidity/Credit scoring."
+
+    series_or_tickers:
+      core_credit:
+        HY_OAS: "BAMLH0A0HYM2"
+        IG_OAS: "BAMLC0A0CM"
+        BBB_OAS: "BAMLC0A4CBBB"
+        BAA_minus_10Y: "BAA10Y"
+      volatility:
+        VIX_close: "VIXCLS"
+      balance_sheet:
+        total_Fed_assets: "WALCL"
+        reserve_balances: "WRESBAL"
+        Treasury_General_Account: "WTREGEN"
+      money_markets:
+        ON_RRP: "RRPONTSYD"
+        overnight_repo_FRED_proxy: "RPONTSYD"
+        SOFR: "SOFR"
+        IORB: "IORB"
+      facilities:
+        primary_credit: "WLCFLPCL"
+        central_bank_swaps: "SWPT"
+        historical_BTFP_only: "H41RESPPALDKNWW"
+      broad_conditions:
+        NFCI: "NFCI"
+        STLFSI4: "STLFSI4"
+
+    history_windows:
+      credit_spreads: ["latest", "5 trading days", "20 trading days", "63 trading days", "3-year context"]
+      VIX: ["latest", "5 trading days", "20 trading days", "number of closes above 20 and 25"]
+      H4_1_series: ["latest week", "1-week change", "4-week change", "13-week change"]
+      SOFR_IORB_and_repo: ["latest", "5-day median", "5-day maximum", "20-day context"]
+      facilities: ["latest week", "1-week change", "4-week maximum"]
+      NFCI_STLFSI4: ["latest week-ending value", "4-week change", "13-week context"]
+      policy_purchase_schedule: ["current monthly operating period", "prior monthly period"]
+
+    adjusted_or_unadjusted_prices: >-
+      Not applicable to prices. All listed FRED series are used in their published units and
+      are generally not seasonally adjusted. Do not seasonally adjust or inflation-adjust them.
+
+    splice_or_proxy_rules:
+      - >-
+        VIX: prefer FRED VIXCLS for historical continuity. Use Cboe direct only for a completed
+        close that FRED has not yet published; never mix an intraday reading into a close-based score.
+      - >-
+        BAA10Y: use the published FRED spread. Recompute from DBAA minus the relevant 10-year
+        Treasury series only if BAA10Y is unavailable, and disclose the substitute.
+      - >-
+        Standing-repo usage: use NY Fed accepted operation amounts when possible. RPONTSYD is
+        a proxy/sanity check and can include small-value operations; exclude announced 0.001B tests.
+      - >-
+        Reserve-management purchases: use the current NY Fed monthly schedule. Do not treat
+        agency reinvestment purchases as incremental reserve-management purchases.
+      - >-
+        BTFP is historical only after it reaches zero or the series is discontinued; do not
+        substitute it for primary credit.
+      - >-
+        If an ICE OAS series is temporarily unavailable, do not substitute an ETF yield spread
+        without a disclosed methodology change and confidence penalty.
+
+    asof_selection_rule:
+      market_data: >-
+        Use the latest fully completed U.S. market close. If the current trading session is open,
+        use the prior close. Every credit and VIX metric must retain its own observation date.
+      daily_funding_data: >-
+        Use the latest published SOFR, IORB, ON RRP, and repo operation observations; pair SOFR
+        and IORB on the same calendar date before calculating the spread.
+      weekly_H4_1_data: >-
+        Use the latest Wednesday observation or week-average ending Wednesday and label the date
+        exactly; do not relabel it as Friday or the report date.
+      weekly_broad_indexes: >-
+        Use their actual week-ending Friday date, not their later publication date.
+      policy_data: >-
+        Use the announcement/effective date and current operating-period dates. A new FOMC
+        implementation note or NY Fed purchase schedule supersedes the prior one immediately.
+      overall_report_asof: >-
+        Set ASOF to the latest completed market close, then explicitly list the older weekly and
+        lagged dates in the header, KEY_METRICS, and NOTES.
+
+    incomplete_row_rule:
+      - "Never score an intraday VIX observation as a close."
+      - "Do not forward-fill a missing core spread for more than 3 business days without a caveat and confidence reduction."
+      - "If one of four credit series is missing but no more than 5 business days stale, renormalize the remaining credit weights and disclose it."
+      - "If HY OAS or VIX is missing/stale by more than 3 business days, do not publish a fully confident official score."
+      - "If WRESBAL or WTREGEN is older than 8 calendar days, use the prior complete weekly row and reduce confidence."
+      - "If standing-repo results are unavailable, use RPONTSYD only as a proxy, label it, and reduce confidence by 5 points."
+      - "Do not create a balance-sheet identity from mismatched Wednesday-level and week-average series."
+
+  calculations:
+    formulas:
+      spread_percent_to_basis_points: "spread_bp = spread_percent * 100"
+      FRED_millions_to_billions: "value_B = value_millions / 1000"
+      FRED_millions_to_trillions: "value_T = value_millions / 1000000"
+      billions_to_trillions: "value_T = value_B / 1000"
+      SOFR_minus_IORB: "SOFR_IORB_bp = (SOFR_percent - IORB_percent) * 100"
+      daily_change: "delta_1d = latest - prior_completed_observation"
+      five_day_change: "delta_5d = latest - observation_5_trading_days_ago"
+      twenty_day_change: "delta_20d = latest - observation_20_trading_days_ago"
+      weekly_change: "delta_1w = latest_week - prior_week"
+      four_week_change: "delta_4w = latest_week - week_4_observations_ago"
+      TGA_explained_fraction: >-
+        If delta_4w_WRESBAL < 0 and delta_4w_WTREGEN > 0,
+        fraction = min(1.0, delta_4w_WTREGEN / abs(delta_4w_WRESBAL)); otherwise N/A.
+      repo_daily_total: >-
+        Sum accepted amounts across all same-day standing-repo operations and eligible security
+        types, excluding explicitly announced small-value test operations.
+      repo_five_day_score: >-
+        0.60 * score(maximum accepted daily total over 5 business days)
+        + 0.40 * score(median accepted daily total over 5 business days).
+      SOFR_five_day_score: >-
+        0.60 * score(median positive SOFR-minus-IORB over 5 business days)
+        + 0.40 * score(maximum positive SOFR-minus-IORB over 5 business days).
+      temporary_TGA_driven_reserve_decline: >-
+        TRUE when reserves decline over four weeks, TGA rises, TGA_explained_fraction >= 0.60,
+        5-day median SOFR-minus-IORB <= 5 bp, accepted standing repo does not exceed 10B outside
+        tests, primary credit < 25B, and credit_confirmation is FALSE.
+      genuine_reserve_scarcity: "TRUE only when all three tests in normalization.genuine_scarcity_test pass."
+      score_change: "score_delta = current_score - prior_official_score"
+
+    transformations:
+      - "Keep OAS values in percent for scoring and report both percent and optional basis-point equivalents."
+      - "Convert WALCL, WRESBAL, and WTREGEN from millions to trillions for human-readable reporting."
+      - "Convert WLCFLPCL and SWPT from millions to billions."
+      - "Convert the SOFR-IORB difference from percentage points to basis points."
+      - "Calculate reserve and TGA changes over matched weekly observation dates."
+      - "Use piecewise-linear interpolation; do not use rolling percentiles for the official score."
+      - "Retain raw source values and observation dates in the audit table before applying transformations."
+
+    derived_metrics:
+      - "CreditStress, VolatilityStress, ReserveBufferScore, FundingMarketScore, FacilityStress, BroadStress, and LiquidityFundingStress."
+      - "HY/IG/BBB/BAA10Y 5-day and 20-day changes in basis points."
+      - "VIX 5-day percentage change and count of closes above 20 and 25."
+      - "WALCL, WRESBAL, and TGA 1-week and 4-week changes."
+      - "TGA_explained_fraction for reserve declines."
+      - "SOFR-minus-IORB latest, 5-day median, and 5-day maximum."
+      - "Standing-repo accepted amount latest, 5-day median, and 5-day maximum."
+      - "Calendar-turn flag and whether the calendar discount was applied."
+      - "Credit-confirmation flag, funding-confirmation flag, temporary-TGA flag, and genuine-scarcity flag."
+
+  interpretation:
+    low_risk_regime: >-
+      Score 0-34. Credit spreads are benign, funding rates remain controlled, repo/facility usage
+      is low, and any reserve decline is either modest or flow-driven. This module is supportive
+      for equities. Scores 15-34 still require monitoring of the identified fragility.
+    neutral_regime: >-
+      Score 35-54. One or more components are no longer benign, but confirmation is incomplete.
+      Typical examples are HY OAS approaching 4 percent, VIX persistently above 20, reserves
+      falling rapidly, or SOFR moving above IORB without sustained repo/facility usage.
+    high_risk_regime: >-
+      Score 55-74. Credit and/or funding confirms tightening: sustained spread widening,
+      persistent SOFR-IORB pressure, repeated standing-repo use, or reserve scarcity with
+      corroboration. This is an equity headwind and should increase Supervisor caution.
+    extreme_regime: >-
+      Score 75-100. Crisis-like widening or funding dislocation, large emergency-facility use,
+      severe dollar stress, or multiple modules of the liquidity system failing simultaneously.
+
+  supervisor_integration:
+    official_score_field: "SCORE_0_100, also named LiquidityCreditScore in the human-readable report."
+    confidence_definition: >-
+      CONFIDENCE_0_100 measures data completeness, date alignment, source quality, and signal
+      clarity, not predictive certainty. Start at 100 and deduct: 5 for any core daily series
+      more than 2 business days stale; 5 for H.4.1 older than 8 calendar days; 8 for each missing
+      core series; 3 for each missing auxiliary series; 5 when RPONTSYD substitutes for direct
+      standing-repo results; 5 when the current purchase schedule or implementation note is
+      unclear; 5 for material conflict among credit, funding, and reserve signals; and 2 when
+      ICE history truncation prevents the desired context. Clamp to 50-95.
+    key_metrics_required:
+      - "HY_OAS_BAMLH0A0HYM2 with observation date"
+      - "IG_OAS_BAMLC0A0CM with observation date"
+      - "BBB_OAS_BAMLC0A4CBBB with observation date"
+      - "BAA10Y with observation date"
+      - "VIXCLS with completed-close date and 5-day direction"
+      - "WALCL, WRESBAL, and WTREGEN with Wednesday/week-ending dates and 1-week/4-week changes"
+      - "RRPONTSYD and direct standing-repo accepted usage or RPONTSYD proxy"
+      - "SOFR, IORB, and SOFR-IORB in basis points on a matched date"
+      - "WLCFLPCL and SWPT"
+      - "NFCI and STLFSI4 with week-ending dates"
+      - "Current reserve-management purchase plan, reinvestment plan, and operating-period dates"
+      - "Credit-confirmation, funding-confirmation, temporary-TGA, and genuine-scarcity flags"
+    change_my_mind_triggers:
+      - "HY OAS >= 4.0 percent and rising with IG/BBB/Baa confirmation, or HY widens 75-100 bp with cross-spread confirmation."
+      - "VIX > 20 for several closes and credit spreads widen; VIX alone is not enough."
+      - "WRESBAL < 2.8T or down > 200B over four weeks plus SOFR-IORB > 10 bp or repeated repo usage."
+      - "Standing-repo accepted usage > 10B on 3 of 5 days or > 25B on one non-calendar day."
+      - "Primary credit > 25B and accelerating, or central-bank swaps > 5B and rising."
+      - "A new FOMC/NY Fed policy that resumes QT, removes the ample-reserves posture, or materially changes standing-repo access."
+    overlap_with_other_modules:
+      Macro_Policy: >-
+        Macro owns the policy-rate outlook, inflation, growth, labor data, and broad FOMC stance.
+        Liquidity/Credit owns operational implementation, reserves, TGA, purchase schedules,
+        money-market control, and funding facilities.
+      Sentiment_Technicals: >-
+        Sentiment owns VIX term structure, positioning, breadth, momentum, and tactical risk appetite.
+        Liquidity/Credit uses only VIX spot/close level, short direction, and persistence as a limited
+        stress-transmission overlay.
+      Quant_Risk: >-
+        Quant owns equity price extension, risk bands, and trend-based risk. Liquidity/Credit does
+        not use SPX/NDX price levels in its score.
+      Valuation: >-
+        Valuation owns equity expected returns and valuation premia. Corporate OAS is treated here
+        as default/funding stress, not as an equity valuation input.
+    double_counting_warnings:
+      - "Do not penalize both a TGA rise and the resulting reserve decline as independent full shocks; TGA is primarily an attribution variable."
+      - "Do not count WALCL expansion and reserve-management purchases as two separate full liquidity positives when the purchases caused the balance-sheet move."
+      - "Do not treat near-zero ON RRP as acute stress; it only raises fragility unless funding prices or facility usage confirm."
+      - "Do not let VIX duplicate Sentiment/Technicals; apply the anti-duplication cap."
+      - "Do not give NFCI/STLFSI4 large independent weight because they already include spreads and volatility."
+      - "Do not interpret BAA10Y as pure default risk; Treasury-yield and duration movements affect it."
+      - "Do not count reinvestment purchases as incremental reserve-management purchases."
+      - "Do not treat announced 1-million-dollar repo test operations as stress usage."
+
+  latest_state:
+    asof:
+      handoff_calculation: "2026-08-21 close"
+      credit_and_VIX: "2026-08-21 close except BAA10Y 2026-08-20"
+      weekly_H4_1: "2026-08-19"
+      broad_conditions: "week ending 2026-08-14"
+      policy_schedule: "2026-08-14 through 2026-09-14"
+    score: 17
+    prior_published_score:
+      value: 15
+      asof: "2026-08-14 close"
+    component_scores:
+      CreditStress: 10
+      VolatilityStress: 16
+      ReserveBufferScore: 52
+      FundingMarketScore: 0
+      FacilityStress: 0
+      BroadStress: 0
+      LiquidityFundingStress: 34
+      unrounded_overall: 17.1
+    confidence: 88
+    top_drivers:
+      - "Credit remains very benign: HY OAS 2.70 percent, IG OAS 0.81 percent, BBB OAS 1.00 percent, and BAA10Y 1.64 percent."
+      - "VIX rose modestly to 15.13 but remains in a low-volatility regime and has no credit/funding confirmation."
+      - "Reserve balances fell to 2.935T, but approximately 98 percent of the four-week decline is heuristically explained by a TGA rise while SOFR-IORB and repo usage remain calm."
+    key_metrics:
+      HY_OAS_BAMLH0A0HYM2: {value_percent: 2.70, asof: "2026-08-21 close"}
+      IG_OAS_BAMLC0A0CM: {value_percent: 0.81, asof: "2026-08-21 close"}
+      BBB_OAS_BAMLC0A4CBBB: {value_percent: 1.00, asof: "2026-08-21 close"}
+      BAA10Y: {value_percent: 1.64, asof: "2026-08-20"}
+      VIXCLS: {value: 15.13, asof: "2026-08-21 close", five_day_change_percent: 6.18}
+      WALCL: {value_trillions: 6.745699, asof: "2026-08-19", four_week_change_billions: -1.679}
+      WRESBAL: {value_trillions: 2.935287, asof: "week ending 2026-08-19", four_week_change_billions: -126.862}
+      WTREGEN_TGA: {value_trillions: 0.953612, asof: "week ending 2026-08-19", four_week_change_billions: 123.989}
+      TGA_explained_fraction: {value_percent: 97.7, interpretation: "approximate attribution, not an accounting identity"}
+      RRPONTSYD: {value_billions: 0.200, asof: "2026-08-21"}
+      standing_repo_accepted_or_proxy: {value_billions: 0.000, asof: "2026-08-21", source_method: "RPONTSYD proxy; direct NY Fed results preferred", note: "exclude small-value tests"}
+      SOFR: {value_percent: 3.65, asof: "2026-08-21"}
+      IORB: {value_percent: 3.65, asof: "2026-08-21"}
+      SOFR_minus_IORB: {value_bp: 0, asof: "2026-08-21"}
+      PRIMARY_CREDIT: {value_billions: 5.038, asof: "2026-08-19"}
+      CENTRAL_BANK_SWAPS: {value_billions: 0.123, asof: "2026-08-19"}
+      NFCI: {value: -0.559, asof: "week ending 2026-08-14"}
+      STLFSI4: {value: -0.8285, asof: "week ending 2026-08-14"}
+      RESERVE_MANAGEMENT_PURCHASES_PLANNED: {value_billions: 0, period: "2026-08-14 through 2026-09-14"}
+      REINVESTMENT_PURCHASES_PLANNED: {value_billions: 17.0, period: "2026-08-14 through 2026-09-14"}
+    triggers:
+      credit_confirmation: false
+      funding_confirmation: false
+      reserve_watch: true
+      temporary_TGA_driven_reserve_decline: true
+      genuine_reserve_scarcity: false
+      calendar_discount_applied: false
+      current_read: "Low risk/easy-watchful; supportive for equities with a reserve-buffer watch item."
+
+  output_contract:
+    human_readable_sections:
+      - "Title, exact market/weekly as-of dates, current score, prior score, score change, and regime."
+      - "Executive conclusion and one-paragraph Supervisor implication."
+      - "Credit table: HY, IG, BBB, and BAA10Y levels plus 5-day/20-day direction."
+      - "VIX level, 5-day direction, persistence, and anti-duplication interpretation."
+      - "Fed balance sheet: WALCL, WRESBAL, TGA, 1-week/4-week changes, and TGA attribution."
+      - "Funding plumbing: ON RRP, SOFR, IORB, spread, standing-repo usage, and calendar effects."
+      - "Facilities: primary credit and central-bank swaps."
+      - "Policy operations: current reserve-management purchases, reinvestment purchases, and standing-repo backstop."
+      - "Broad financial-condition cross-check: NFCI and STLFSI4."
+      - "Three to six bullets describing what is improving/worsening and why it matters for equities."
+      - "Exact change-my-mind triggers and upcoming liquidity/policy catalysts."
+      - "Mandatory Supervisor packet as the final section."
+    supervisor_packet:
+      title_exact: "SUPERVISOR PACKET (COPY/PASTE)"
+      wrapper: "One triple-backtick code block, plain text only, one-line bullets, no markdown table."
+      required_template: |-
+        MODULE: Liquidity/Credit
+        ASOF: YYYY-MM-DD close; list weekly/lagged dates if different
+        SCORE_0_100: integer
+        CONFIDENCE_0_100: integer
+        TOP_3_DRIVERS:
+        - one-line driver
+        - one-line driver
+        - one-line driver
+        CHANGE_MY_MIND (TRIGGERS):
+        - one-line trigger
+        - one-line trigger
+        - one-line trigger
+        KEY_METRICS:
+        - HY_OAS_BAMLH0A0HYM2=value (date)
+        - IG_OAS_BAMLC0A0CM=value (date)
+        - BBB_OAS_BAMLC0A4CBBB=value (date)
+        - BAA10Y=value (date)
+        - VIXCLS=value (date)
+        - WALCL=value (date)
+        - WRESBAL=value (week ending date)
+        - WTREGEN_TGA=value (week ending date)
+        - RRPONTSYD=value (date)
+        - STANDING_REPO_ACCEPTED=value (date)
+        - SOFR_IORB_SPREAD=value_bp (matched date)
+        - PRIMARY_CREDIT=value (date)
+        - CENTRAL_BANK_SWAPS=value (date)
+        - NFCI=value (week ending date)
+        - STLFSI4=value (week ending date)
+        - RESERVE_MANAGEMENT_PURCHASES_PLANNED=value (operating period)
+        NOTES:
+        - One line covering mixed as-of dates, data gaps, proxy use, calendar adjustment, and methodology changes
+      mandatory_rules:
+        - "Always include every exact top-level key even when a value is N/A."
+        - "Higher SCORE_0_100 always means more risk/caution."
+        - "KEY_METRICS must retain their own observation dates."
+        - "If methodology changes, disclose it in NOTES."
+    spreadsheet_or_csv_output:
+      required: false
+      recommended_row_schema:
+        - "report_asof"
+        - "score_0_100"
+        - "confidence_0_100"
+        - "credit_stress"
+        - "volatility_stress"
+        - "reserve_buffer_score"
+        - "funding_market_score"
+        - "facility_stress"
+        - "broad_stress"
+        - "liquidity_funding_stress"
+        - "hy_oas_pct"
+        - "hy_oas_20d_change_bp"
+        - "ig_oas_pct"
+        - "bbb_oas_pct"
+        - "baa10y_pct"
+        - "vix_close"
+        - "vix_5d_change_pct"
+        - "walcl_T"
+        - "wresbal_T"
+        - "wresbal_4w_change_B"
+        - "tga_T"
+        - "tga_4w_change_B"
+        - "tga_explained_fraction"
+        - "on_rrp_B"
+        - "standing_repo_accepted_B"
+        - "sofr_pct"
+        - "iorb_pct"
+        - "sofr_iorb_bp"
+        - "primary_credit_B"
+        - "central_bank_swaps_B"
+        - "nfci"
+        - "stlfsi4"
+        - "reserve_management_purchases_planned_B"
+        - "credit_confirmation_flag"
+        - "funding_confirmation_flag"
+        - "temporary_tga_flag"
+        - "genuine_scarcity_flag"
+        - "calendar_adjustment_flag"
+        - "notes"
+
+  known_caveats:
+    - "Beginning in April 2026, the FRED ICE OAS pages may expose only three years of history; archive data locally if longer context is needed."
+    - "WALCL is a Wednesday level, while WRESBAL and WTREGEN are weekly averages ending Wednesday; their changes do not form an exact accounting identity."
+    - "The numerical ample-reserve threshold is not officially fixed and can change with banking-system size, regulation, and reserve distribution."
+    - "BAA10Y is affected by both corporate yields and Treasury yields and is not a pure default-risk spread."
+    - "ON RRP depletion removes a buffer but is not itself a funding crisis."
+    - "RPONTSYD can include small-value tests and is not always a clean measure of standing-repo stress."
+    - "Primary-credit use can be idiosyncratic or seasonal; emphasize level, persistence, and acceleration."
+    - "NFCI and STLFSI4 are lagged and overlap with credit and volatility inputs."
+    - "TGA targets and issuance plans are forecasts and may change between quarterly refundings."
+    - "A high TGA can drain reserves temporarily even while Fed assets are stable; interpret the flow jointly."
+
+  known_failure_modes:
+    - "Using today's intraday VIX with yesterday's credit close and labeling all metrics as the same as-of date."
+    - "Reading the FRED page update timestamp as the observation date."
+    - "Double-counting a TGA rise and reserve decline as two independent liquidity shocks."
+    - "Calling reserves scarce solely because WRESBAL is below an absolute threshold."
+    - "Treating near-zero ON RRP as a crisis signal."
+    - "Treating a month-end or quarter-end repo spike as structural before checking next-day normalization."
+    - "Failing to exclude announced 1-million-dollar test operations."
+    - "Using RPONTSYD as exact standing-repo usage without checking NY Fed operation details."
+    - "Counting reinvestment purchases as incremental reserve-management purchases."
+    - "Allowing VIX to dominate the module without credit or funding confirmation."
+    - "Using NFCI/STLFSI4 as independent large-weight signals despite embedded spread/volatility overlap."
+    - "Changing risk thresholds after market moves in order to rationalize the desired score."
+    - "Failing to lower confidence when core series are stale or missing."
+
+  files_or_code_needed_for_reproduction:
+    required_files: []
+    recommended_code:
+      - "A Python script using pandas/numpy for retrieval, date alignment, piecewise interpolation, score calculation, and audit-table output."
+      - "A version-controlled YAML or JSON configuration containing every anchor, weight, overlay, and trigger in this handoff."
+      - "A local CSV archive of ICE OAS observations because public FRED history may be truncated."
+      - "A parser or API client for NY Fed standing-repo operation results and Treasury-purchase schedules."
+      - "A saved prior-official-report row for score-change calculations."
+    retrieval_options:
+      - "FRED API with an API key."
+      - "Public FRED CSV downloads when an API key is unavailable."
+      - "NY Fed Markets Data API or official operation-result pages for repo usage."
+    audit_requirement: >-
+      Save raw value, raw unit, observation date, retrieval timestamp, transformed value,
+      subscore, overlay, and final contribution for every report.
+
+  unresolved_questions:
+    - "Should absolute reserves be normalized by nominal GDP, bank assets, or deposits instead of using only trillion-dollar anchors?"
+    - "What reserve level will the Fed operationally regard as the lower edge of ample as the banking system grows?"
+    - "Should direct SRF usage replace RPONTSYD completely once a reliable automated NY Fed feed is implemented?"
+    - "How much weight should reserve-management purchase plans receive when the Fed has authority to restart purchases quickly but currently schedules zero?"
+    - "Should SOFR-IORB use volume-weighted intraday diagnostics or TGCR/EFFR confirmation in addition to daily SOFR?"
+    - "How should primary-credit use be adjusted for known seasonal and institution-specific borrowing?"
+    - "Does the VIX allocation remain 25 percent, or should it fall after Supervisor-level double-counting analysis with Sentiment/Technicals?"
+    - "The formalized anchors have not yet been fully backtested across 2008, 2011, 2020, 2022, and 2023 stress episodes."
+
+  recommended_next_improvements:
+    - "Backtest the formal score and each subscore across major credit, repo, and banking-stress episodes; freeze revised anchors only after documented calibration."
+    - "Add EFFR-minus-IORB, TGCR-minus-IORB, SOFR volume, and SOFR percentile data as optional funding confirmations."
+    - "Build calendar-adjusted baselines for month-end, quarter-end, corporate tax dates, April individual tax payments, and Treasury settlement dates."
+    - "Automate TGA attribution using matched H.4.1 liability components while preserving the warning that week averages and Wednesday levels differ."
+    - "Archive all ICE OAS daily observations locally before FRED's rolling-history window removes older data."
+    - "Create a reserve-scarcity dashboard that combines absolute reserves, reserve distribution proxies, SOFR-IORB, repo usage, and facility use."
+    - "Add a score-change decomposition showing how many points came from credit, VIX, reserve buffer, funding, facilities, and broad conditions."
+    - "Run a formal overlap study with Sentiment/Technicals and Macro/Policy to reduce Supervisor-level double counting."
+    - "After three live reports under the formalized rules, review whether the 1-3 point transition difference versus manual scoring is acceptable and then freeze version 1.0."
+
+# NOTE — recorded at intake, not analysis:
+# This is the ONLY module whose latest_state is newer than the recorded prior Supervisor run.
+# Score 17 @ 2026-08-21 close (prior 15 @ 2026-08-14). Confidence 88.
+# Its as-of dates are mixed: credit/VIX 2026-08-21, BAA10Y 2026-08-20, H.4.1 2026-08-19,
+# NFCI/STLFSI4 week ending 2026-08-14. That mixed-date disclosure carries into the report.
