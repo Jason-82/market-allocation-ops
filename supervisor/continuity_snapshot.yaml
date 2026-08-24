@@ -1,0 +1,125 @@
+# CONTINUITY SNAPSHOT — Market Allocation Ops
+#
+# STATUS: This is a continuity snapshot, not a substitute for a fresh run.
+# Do NOT describe these figures as current after their stated as-of dates.
+# Their only sanctioned uses are:
+#   1. prior-run comparison ("change vs. prior Supervisor run"), and
+#   2. continuity of methodology notes and disclosed caveats.
+
+latest_user_supplied_state:
+  status: |
+    This is a continuity snapshot, not a substitute for a fresh run. Do not describe these figures
+    as current after their stated as-of dates.
+
+  latest_module_packets:
+    QuantRisk:
+      asof: "2026-08-14 close"
+      score: 97
+      confidence: 84
+      key_state:
+        SPY_risk_smooth: 0.992
+        QQQ_risk_smooth: 0.942
+        IWM_risk_smooth: 0.962
+        ETF_composite_risk: 0.972
+        VIX: 14.25
+        SPY_price_at_r0.9: 707.20
+        QQQ_price_at_r0.9: 687.82
+
+    MacroPolicy:
+      asof: "2026-08-13 close"
+      score: 59
+      confidence: 80
+      key_state:
+        ten_year_yield: "4.63%"
+        unemployment: "4.1%"
+        july_payroll_change: "-23,000"
+        july_CPI_yoy: "3.4%"
+        june_core_PCE_yoy: "3.3%"
+        fed_target_range: "3.50% to 3.75%"
+        FOMC_vote: "9 hold, 3 preferred a 25 bp hike"
+
+    LiquidityCredit:
+      asof: "2026-08-14 close; weekly data through 2026-08-12"
+      score: 15
+      confidence: 88
+      key_state:
+        HY_OAS: "2.67%"
+        IG_OAS: "0.80%"
+        BBB_OAS: "0.98%"
+        reserve_balances: "$2.944059 trillion"
+        TGA: "$0.963950 trillion"
+        SOFR_minus_IORB: "-3 bp"
+        overnight_repo_usage: "$0"
+
+    SentimentTechnicals:
+      asof: "2026-08-14 close"
+      score: 63
+      confidence: 84
+      key_state:
+        VIX: 14.25
+        VIX_20d_change: "-24.08%"
+        SPY_vs_50dma: "approximately +3.61%"
+        SPY_vs_200dma: "approximately +9.98%"
+        RSP_vs_SPY_3m: "approximately +5%"
+        IWM_vs_SPY_3m: "approximately +4.6%"
+
+    ValuationExpectedReturns:
+      asof: "2026-08-14 close"
+      score: 89
+      confidence: 83
+      key_state:
+        CAPE: 42.20
+        SP500_trailing_PE: 29.75
+        SP500_price_to_sales: 3.81
+        SPY_forward_PE: 21.68
+        earnings_yield: "3.36%"
+        ten_year_nominal: "4.68%"
+        ten_year_real: "2.41%"
+        nominal_ERP: "-1.32%"
+        market_cap_to_GDP: "240.04%"
+
+  latest_supervisor_result:
+    asof: "2026-08-14 close"
+    overall_risk_score: 68.8
+    weighted_confidence: 83.9
+    regime: "Slow DCA"
+    raw_multiplier: 0.64
+    operational_multiplier: 0.65
+    weekly_baseline: 312500
+    amount_deployed: 203125
+    incremental_holdback: 109375
+    core_amount: 162500
+    sleeve_amount: 40625
+    reserve_release: false
+    prior_overall_comparison:
+      prior_asof: "2026-03-05 close"
+      prior_score: 66.6
+      change: 2.2
+      classification: "Risk modestly deteriorated"
+
+  latest_temporary_sleeve_tilt:
+    status: "One-contribution recommendation only; not a strategic target change"
+    weights:
+      QQQM: 0.14
+      QUAL: 0.11
+      DFAC: 0.08
+      DUHP: 0.10
+      SPMO: 0.02
+      DISV: 0.19
+      DFIV: 0.23
+      DFEV: 0.13
+    rationale: |
+      Underweight extended U.S. mega-cap growth and momentum; emphasize quality, profitability, and
+      developed international value; avoid aggressively overweighting U.S. small value because IWM
+      was also highly extended; modestly underweight emerging-markets value under high real yields.
+    reuse_rule: |
+      Do not automatically reuse this tilt. Re-evaluate it from current module packets, actual
+      portfolio target gaps, and current cross-asset conditions.
+
+# Values deliberately NOT recorded here, because they were never supplied:
+#   - cumulative reserve balance
+#   - amount already invested to date
+#   - remaining deployment balance
+#   - current portfolio balance or actual holdings
+#   - the settled weekly contribution day
+# Never infer these. They come only from a user-provided ledger or transaction history.
