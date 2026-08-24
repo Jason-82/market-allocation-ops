@@ -96,22 +96,42 @@ strategic_sleeve_targets:
     one-contribution tilts and must not silently redefine these long-term targets.
   total_portfolio_targets:
     QQQM: 0.045
-    QUAL: 0.015
-    DFAC: 0.015
-    DUHP: 0.015
+    QUAL: 0.020
+    DFAC: 0.020
+    DUHP: 0.020
     SPMO: 0.010
-    DISV: 0.040
+    DISV: 0.030
     DFIV: 0.030
-    DFEV: 0.030
+    DFEV: 0.025
   normal_within_sleeve_weights:
     QQQM: 0.225
-    QUAL: 0.075
-    DFAC: 0.075
-    DUHP: 0.075
+    QUAL: 0.100
+    DFAC: 0.100
+    DUHP: 0.100
     SPMO: 0.050
-    DISV: 0.200
+    DISV: 0.150
     DFIV: 0.150
-    DFEV: 0.150
+    DFEV: 0.125
+  revision_2026_08_25:
+    approved_by: "Jason, 2026-08-24"
+    change: |
+      DISV 0.040 -> 0.030 and DFEV 0.030 -> 0.025; the freed 1.5pp went to QUAL, DFAC and
+      DUHP at +0.5pp each. Sleeve still totals 20% of the portfolio.
+    rationale: |
+      Jason chose to reduce the small-value tilt after reviewing DFA's own fund table, which
+      showed DEMSX (EM small cap) trailing DFA's EM core/large funds by roughly 26pp over one
+      year, 9pp over three, 5pp over five and 2.2pp annualized over ten, at a higher net
+      expense ratio (0.60% vs 0.29-0.39%). The reduction is implemented through contributions
+      only. No position is sold.
+    known_limitation: |
+      This revision is modest in effect. DEMSX is 598,619 - about 5.55% of total investable and
+      roughly eleven times the dollar value of the DFEV target change - and it sits OUTSIDE the
+      eight-ETF sleeve. The DISV cut is the part that genuinely reduces the small-value tilt.
+      EM small/value exposure remains substantial for as long as DEMSX is held, which is the
+      accepted consequence of not selling it.
+    prior_targets_for_reference:
+      total_portfolio_targets: {QQQM: 0.045, QUAL: 0.015, DFAC: 0.015, DUHP: 0.015, SPMO: 0.010, DISV: 0.040, DFIV: 0.030, DFEV: 0.030}
+      normal_within_sleeve_weights: {QQQM: 0.225, QUAL: 0.075, DFAC: 0.075, DUHP: 0.075, SPMO: 0.050, DISV: 0.200, DFIV: 0.150, DFEV: 0.150}
   design_rationale: |
     The sleeve was revised after reviewing institutional long-horizon expected-return research,
     including Research Affiliates projections that were comparatively unfavorable for U.S.

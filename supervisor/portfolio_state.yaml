@@ -1,0 +1,124 @@
+# PORTFOLIO STATE — derived figures only
+#
+# Sourced from Schwab position exports dated 2026-08-24 ~12:20 PM ET, plus totals Jason
+# supplied for accounts not exported. The raw statements are deliberately NOT stored in this
+# repo: they are brokerage records and this repo pushes to GitHub. Only derived aggregates
+# live here. Refresh by re-exporting positions; do not treat these as current after 2026-08-24.
+
+asof: "2026-08-24"
+
+money_map:
+  seven_exported_accounts: 8470939.60
+  other_smaller_accounts_implied: 517538.40
+  total_stock_accounts: 8988478.00
+  invested: 3479580.75
+  cash_within_stock_accounts: 5508897.25
+  crypto_related_treated_as_cash: 1800000.00
+  total_investable: 10788478.00
+  deployable_cash: 7152472.69
+  pct_already_deployed: 32.3
+  note: |
+    Jason directed that the ~1.8M of crypto-related assets be treated as cash for DCA planning.
+    Part of it is a long-term fund that will distribute over time, so it is not all immediately
+    liquid. There is NO separate 1M reserve; an earlier reference to one was withdrawn.
+
+deployment_horizon:
+  weekly_baseline: 250000
+  weeks_at_1_0x: 28.6
+  weeks_at_0_65x: 44.0
+  baseline_review_2026_08_24: |
+    A baseline increase was proposed and then withdrawn. The error was comparing the baseline to
+    TOTAL investable (10.79M) rather than REMAINING deployable cash (7.15M). Against remaining
+    cash, 250,000 gives 28.6 weeks at full pace, at or slightly faster than the original
+    ~32-tranche design. The 44-week figure is the 0.65x risk multiplier working as intended,
+    not a stale parameter. Baseline unchanged.
+
+robo_cash_by_account:
+  description: |
+    Schwab Intelligent Portfolios sizes the cash allocation to each account's risk profile.
+    Cash falls monotonically as the profile gets more aggressive. Account digits omitted.
+  trust_1_robo:    {total: 1349451.72, cash: 99649.59, pct: 7.38}
+  trust_2_robo:    {total: 34644.15,   cash: 2461.20,  pct: 7.10}
+  roth_ira_robo:   {total: 170269.68,  cash: 10899.00, pct: 6.40}
+  individual_robo: {total: 725123.11,  cash: 41262.26, pct: 5.69}
+  weighted:        {total: 2279488.66, cash: 154272.05, pct: 6.77}
+  unconfirmed_jra_trust:
+    total: 30288.88
+    cash: 2152.51
+    pct: 7.11
+    note: |
+      Holds the robo lineup plus PRF, PXF, VB, VEA and VOO, which are not robo holdings.
+      Robo-with-legacy-positions or self-managed is unresolved. Do not assume.
+  cash_at_full_deployment:
+    core_at_full_deployment: 8630782.40
+    at_5_69_pct: 491091.52
+    at_6_77_pct: 584303.97
+    jason_estimate: 450000
+    interpretation: |
+      Jason needs roughly 450,000 liquid for living expenses even when fully invested, so most
+      of this balance serves a purpose he has anyway. Only the excess is genuine drag. An
+      earlier claim that the robo cash costs ~18,000/yr was WITHDRAWN: it assumed an
+      unverified 0.45% sweep rate and treated the whole balance as drag. Schwab's current
+      sweep rate could not be verified (schwab.com is blocked by this environment's proxy).
+
+manual_sleeve:
+  location: "All eight sleeve ETFs are held in the personal account."
+  total_value: 178773.90
+  positions:
+    QQQM: {value: 22764.86, pct_of_sleeve: 12.73}
+    QUAL: {value: 12071.43, pct_of_sleeve: 6.75}
+    DFAC: {value: 15387.45, pct_of_sleeve: 8.61}
+    DUHP: {value: 14056.88, pct_of_sleeve: 7.86}
+    SPMO: {value: 3959.16,  pct_of_sleeve: 2.21}
+    DISV: {value: 46576.58, pct_of_sleeve: 26.05}
+    DFIV: {value: 36810.84, pct_of_sleeve: 20.59}
+    DFEV: {value: 27146.70, pct_of_sleeve: 15.18}
+  deviation_from_normal_weights_pp: 26.60
+  finding: |
+    QQQM and SPMO are the two largest UNDERWEIGHTS, not overweights. A provisional tilt issued
+    earlier on 2026-08-24 -- before holdings were available -- had recommended cutting both and
+    adding to DFIV. That tilt was reversed once real gaps arrived. Contribution-based gap
+    closing outranks an inferred valuation tilt whenever actual holdings are known.
+
+emerging_markets_concentration:
+  total: 1010232.05
+  by_holding:
+    DEMSX: 598619.11
+    FNDE: 228005.91
+    SCHE: 83018.31
+    SPEM: 61800.78
+    DFEV: 27146.70
+    EMLC: 8835.57
+    EBND: 2805.67
+  pct_of_invested: 29.03
+  pct_of_total_investable: 9.36
+  plan_implied_target_pct_of_total: 11.80
+  interpretation: |
+    EM is roughly ON PLAN at the total level (9.36% against an implied ~11.8% target) but heavily
+    FRONT-LOADED: 29% of what has actually been deployed. It dilutes toward target on its own as
+    the remaining cash goes in. The concentration is in DEMSX, which is 59% of all EM exposure
+    and sits outside the eight-ETF sleeve.
+
+demsx_review:
+  decision: "Hold. Reduce exposure through contributions only. No sale."
+  value: 598619.11
+  cost_basis: 398352.41
+  unrealized_gain: 200266.70
+  tax_if_sold:
+    at_23_8_pct: 47663.47
+    at_18_8_pct: 37650.14
+  dfa_table_supplied_by_jason:
+    DEMSX_annualized: {y1: 7.46, y3: 8.99, y5: 4.46, y10: 7.24, net_er: 0.60}
+    peer_avg_annualized: {y1: 33.95, y3: 18.42, y5: 9.22, y10: 9.43}
+    shortfall_pp: {y1: -26.49, y3: -9.43, y5: -4.76, y10: -2.19}
+  correction_recorded: |
+    An earlier reply pushed back on Jason's underperformance claim using an index-level web
+    search suggesting EM small caps had OUTPERFORMED EM large caps. That pushback was wrong at
+    the fund level. Jason's DFA table settles it: DEMSX trails DFA's own EM core/large funds at
+    every horizon, at a higher net expense ratio. The index-level result did not describe this
+    fund. Do not re-raise the outperformance argument.
+  caveat_still_standing: |
+    The 1-year -26pp gap is what a small-value tilt does when EM mega-cap tech runs. The 10-year
+    -2.19pp is the structurally meaningful figure. Selling after the worst relative year is the
+    classic way to lock in a tilt's downside, which is part of why contribution-based reduction
+    was chosen over a sale.

@@ -43,9 +43,14 @@ Weekly baseline **$250,000** (rescaled 2026-08-24 from $312,500 when the investa
 from ~$10M to ~$8M). Deploy = baseline × operational multiplier; 80% core (Schwab Intelligent
 Portfolios, report the dollar amount only), 20% manual sleeve; holdback = baseline − deploy.
 
-The robo parks a mandatory ~7% of the core in sweep cash and it cannot be turned off, so always
-report the **effective** multiplier next to the nominal one:
-`effective = operational × (1 − 0.80 × robo_cash)`. At 0.65x nominal that is 0.6136x effective.
+The robo parks cash in the core and it cannot be turned off, so always report the **effective**
+multiplier next to the nominal one: `effective = operational × (1 − 0.80 × robo_cash)`.
+
+The cash fraction is **not** a fixed 7% — Schwab sizes it to each account's risk profile. Measured
+2026-08-24: 5.69% (Individual, most aggressive), 6.40% (Roth IRA), 7.10% (Trust 2), 7.38% (Trust 1);
+**6.77% market-value weighted**. At 0.65x nominal that is 0.6148x effective at the blended rate and
+0.6204x if the core contribution is routed to the most aggressive account. Pass `--robo-cash` to
+model a specific destination; the destination is worth choosing deliberately.
 Never gross the core up to compensate — the program rebalances back to its cash target.
 
 ## Hard rules
@@ -64,6 +69,8 @@ Never gross the core up to compensate — the program rebalances back to its cas
 - High valuation is never grounds for pausing indefinitely, and never grounds for defaulting to
   taxable selling. Prefer contribution-based rebalancing; avoid selling positions held under a year
   absent a hard-band breach or an explicit request.
+- Do not classify accounts by whether the name contains "IP" — that heuristic misread
+  `Jason Individual` as non-robo. Classify by holdings and cash behaviour, or ask.
 - A one-contribution sleeve tilt is never a strategic target change. Label it as provisional when
   actual target gaps are unavailable.
 - Use absolute dates. Never fabricate a missing metric — report it as not supplied, with the reason.
@@ -74,5 +81,5 @@ Never gross the core up to compensate — the program rebalances back to its cas
 
 Stdlib-only Python. Run `python3 tools/dca_calc.py --self-test` after touching the calculator; it
 reconciles the recorded 2026-08-14 run *at its own $312,500 baseline* and current arithmetic at
-$250,000. Do not "fix" the historical constant to the current value. If a spec value changes in `master_handoff.yaml`,
+$250,000. Sleeve weights are duplicated in the self-test and must be updated with the spec. Do not "fix" the historical constant to the current value. If a spec value changes in `master_handoff.yaml`,
 update `tools/dca_calc.py` in the same commit — the weights and baseline are duplicated there.

@@ -46,7 +46,18 @@ CENT = Decimal("0.01")
 
 # Schwab Intelligent Portfolios holds a mandatory cash allocation that cannot be
 # switched off. Jason reports ~7% on an aggressive profile. Only the core is affected.
-ROBO_CASH_FRACTION = Decimal("0.07")
+# Measured 2026-08-24 across the four confirmed Schwab Intelligent Portfolios accounts,
+# market-value weighted. Schwab sizes the cash allocation to the account's risk profile, so
+# this is NOT a fixed 7% -- it ranged 5.69% (most aggressive) to 7.38% across Jason's accounts.
+# Pass --robo-cash to model a specific destination account.
+ROBO_CASH_FRACTION = Decimal("0.0677")
+ROBO_CASH_BY_ACCOUNT = {
+    "trust1": Decimal("0.0738"),      # Jason Trust 1 IP ...821
+    "trust2": Decimal("0.0710"),      # Jason Trust 2 IP ...422
+    "roth": Decimal("0.0640"),        # Jason Roth IRA IP ...589
+    "individual": Decimal("0.0569"),  # Jason Individual ...547 -- most aggressive profile
+    "blended": Decimal("0.0677"),
+}
 
 
 def blend(values: dict[str, Decimal]) -> Decimal:
@@ -142,6 +153,7 @@ def compute(
     scores: dict[str, Decimal],
     confs: dict[str, Decimal] | None = None,
     baseline: Decimal = WEEKLY_BASELINE,
+    robo_cash: Decimal = ROBO_CASH_FRACTION,
 ) -> dict:
     overall = blend(scores)
     regime, mult_range = action_band(overall)
@@ -163,7 +175,8 @@ def compute(
         op = to_operational(raw)
         out["operational_multiplier"] = op
         out.update(contribution_math(op, baseline))
-        out.update(effective_deployment(out["total_deploy"], out["core_amount"]))
+        out.update(effective_deployment(out["total_deploy"], out["core_amount"], robo_cash))
+        out["robo_cash_rate"] = robo_cash
         out["effective_multiplier"] = (out["market_deploy"] / baseline).quantize(Decimal("0.0001"))
     return out
 
@@ -191,7 +204,7 @@ def render(res: dict, asof: str | None) -> str:
     lines.append(f"  Sleeve (20%, manual): ${res['sleeve_amount']:,}")
     lines.append(f"Incremental holdback: ${res['incremental_holdback']:,}")
     lines.append(
-        f"  less mandatory robo cash ({ROBO_CASH_FRACTION:.0%} of core): ${res['cash_parked_in_core']:,}"
+        f"  less mandatory robo cash ({res['robo_cash_rate']:.2%} of core): ${res['cash_parked_in_core']:,}"
     )
     lines.append(
         f"  reaching the market: ${res['market_deploy']:,}"
@@ -257,8 +270,8 @@ def self_test() -> int:
 
     # Sleeve lines reconcile exactly to the sleeve amount.
     normal = {
-        "QQQM": d("0.225"), "QUAL": d("0.075"), "DFAC": d("0.075"), "DUHP": d("0.075"),
-        "SPMO": d("0.050"), "DISV": d("0.200"), "DFIV": d("0.150"), "DFEV": d("0.150"),
+        "QQQM": d("0.225"), "QUAL": d("0.100"), "DFAC": d("0.100"), "DUHP": d("0.100"),
+        "SPMO": d("0.050"), "DISV": d("0.150"), "DFIV": d("0.150"), "DFEV": d("0.125"),
     }
     lines = sleeve_lines(res["sleeve_amount"], normal)
     checks.append(("sleeve lines sum", sum(lines.values(), d(0)), res["sleeve_amount"]))
@@ -273,9 +286,9 @@ def self_test() -> int:
         ("current core", cur["core_amount"], d("130000.00")),
         ("current sleeve", cur["sleeve_amount"], d("32500.00")),
         ("current holdback", cur["incremental_holdback"], d("87500.00")),
-        ("robo cash parked", cur["cash_parked_in_core"], d("9100.00")),
-        ("market deploy", cur["market_deploy"], d("153400.00")),
-        ("effective mult", cur["effective_multiplier"], d("0.6136")),
+        ("robo cash parked", cur["cash_parked_in_core"], d("8801.00")),
+        ("market deploy", cur["market_deploy"], d("153699.00")),
+        ("effective mult", cur["effective_multiplier"], d("0.6148")),
     ]
 
     failed = 0
@@ -292,6 +305,9 @@ def main(argv: list[str]) -> int:
     p.add_argument("--self-test", action="store_true")
     p.add_argument("--asof")
     p.add_argument("--baseline", default=str(WEEKLY_BASELINE))
+    p.add_argument("--robo-cash", default=None,
+                   help="Robo cash fraction, or an account key: "
+                        + ", ".join(ROBO_CASH_BY_ACCOUNT))
     for m in WEIGHTS:
         p.add_argument(f"--{m}", type=str, help=f"{m} module score 0-100")
         p.add_argument(f"--{m}-conf", type=str, help=f"{m} module confidence 0-100")
@@ -308,9 +324,10 @@ def main(argv: list[str]) -> int:
     raw_confs = {m: getattr(a, f"{m}_conf") for m in WEIGHTS}
     confs = {m: Decimal(v) for m, v in raw_confs.items()} if all(v is not None for v in raw_confs.values()) else None
 
-    res = compute(scores, confs)
-    if res["raw_multiplier"] is not None and Decimal(a.baseline) != WEEKLY_BASELINE:
-        res.update(contribution_math(res["operational_multiplier"], Decimal(a.baseline)))
+    rc = ROBO_CASH_FRACTION
+    if a.robo_cash:
+        rc = ROBO_CASH_BY_ACCOUNT.get(a.robo_cash, None) or Decimal(a.robo_cash)
+    res = compute(scores, confs, Decimal(a.baseline), rc)
     print(render(res, a.asof))
     return 0
 
