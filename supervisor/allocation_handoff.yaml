@@ -1,0 +1,307 @@
+# PORTFOLIO ALLOCATION AND REBALANCING HANDOFF
+#
+# Supplied by Jason 2026-08-24 from the original AI thread. This is his authoritative
+# source document for strategic allocation, regional exposure, weighting methodology and
+# rebalancing rules. Recorded as received.
+#
+# SUPERSEDED VALUES — see reconciliation_2026_08_24 at the end of this file before using
+# any number here. Several figures in this document are now known to be stale or wrong
+# against actual holdings.
+
+metadata:
+  project: "Market Allocation Ops"
+  user: "Jason"
+  purpose: "Portable source of truth for strategic portfolio allocation, regional exposure, weighting methodology, and rebalancing rules."
+  status: "Strategic allocation handoff; temporary contribution tilts do not modify these targets."
+  portfolio_base_dollars: 10000000        # SUPERSEDED: total investable is 10,788,478
+  separate_cash_reserve_dollars: 1000000  # SUPERSEDED: Jason confirmed no separate reserve exists
+  separate_cash_reserve_treatment: "Outside the approximately $10 million investable portfolio unless Jason explicitly changes this."
+  authoritative_priority:
+    - "Later explicit instructions from Jason override this file."
+    - "Actual current Schwab robo holdings or a current statement override the rounded core model below."
+    - "Strategic targets override one-contribution tactical tilts."
+    - "This handoff corrects prior regional classifications that treated DISV as a U.S. small-value ETF."
+
+critical_ticker_classification:
+  current_ticker: "DISV"
+  classification: "Dimensional International Small Cap Value ETF; developed ex-U.S. small-value exposure."
+  not_equivalent_to: "DFSV, which is Dimensional U.S. Small Cap Value ETF."
+  working_assumption: "DISV is intentional because it is the ticker in Jason's finalized 20% sleeve."
+  required_action_if_uncertain: "Confirm DISV versus DFSV with Jason before changing regional totals."
+  effect_of_using_DISV: "Moves 4.0 percentage points from U.S. equity to developed international equity versus the earlier DFSV-like classification."
+
+portfolio_structure:
+  core:
+    target_pct_total_portfolio: 80.0
+    implementation: "Schwab robo-style core; underlying allocation and rebalancing are handled automatically by Schwab."
+    manual_order_requirement: "Supervisor normally gives only the dollar amount to transfer to the core, not core ETF orders."
+  manual_sleeve:
+    target_pct_total_portfolio: 20.0
+    implementation: "Manual ETF sleeve controlled by Jason."
+  invested_risk_assets_pct: 95.2
+  robo_cash_pct: 4.8   # SUPERSEDED: measured 6.77% blended, 5.69-7.38% by account
+
+rounded_schwab_core_model:
+  status: "Working rounded model used for allocation decomposition; verify against the current Schwab robo statement."
+  warning: "MATERIALLY WRONG against actual holdings. See reconciliation_2026_08_24."
+  core_target_pct_total_portfolio: 80.0
+  holdings:
+    SCHX: {within_core_pct: 14.0, total_portfolio_pct: 11.2, dollars_on_10m: 1120000}
+    SCHG: {within_core_pct: 2.0,  total_portfolio_pct: 1.6,  dollars_on_10m: 160000}
+    FNDX: {within_core_pct: 16.0, total_portfolio_pct: 12.8, dollars_on_10m: 1280000}
+    SCHA: {within_core_pct: 5.0,  total_portfolio_pct: 4.0,  dollars_on_10m: 400000}
+    FNDA: {within_core_pct: 9.0,  total_portfolio_pct: 7.2,  dollars_on_10m: 720000}
+    SCHF: {within_core_pct: 12.0, total_portfolio_pct: 9.6,  dollars_on_10m: 960000}
+    FNDF: {within_core_pct: 10.0, total_portfolio_pct: 8.0,  dollars_on_10m: 800000}
+    SCHC: {within_core_pct: 3.0,  total_portfolio_pct: 2.4,  dollars_on_10m: 240000}
+    FNDC: {within_core_pct: 2.0,  total_portfolio_pct: 1.6,  dollars_on_10m: 160000}
+    SPEM: {within_core_pct: 6.0,  total_portfolio_pct: 4.8,  dollars_on_10m: 480000}
+    FNDE: {within_core_pct: 11.0, total_portfolio_pct: 8.8,  dollars_on_10m: 880000}
+    SCHH: {within_core_pct: 2.0,  total_portfolio_pct: 1.6,  dollars_on_10m: 160000}
+    HAUZ: {within_core_pct: 2.0,  total_portfolio_pct: 1.6,  dollars_on_10m: 160000}
+    CASH: {within_core_pct: 6.0,  total_portfolio_pct: 4.8,  dollars_on_10m: 480000}
+  validation: {within_core_sum_pct: 100.0, total_portfolio_sum_pct: 80.0}
+
+strategic_manual_sleeve:
+  status: "Targets as recorded in this handoff. SUPERSEDED by the 2026-08-24 revision in master_handoff.yaml."
+  holdings:
+    QQQM: {total_portfolio_pct: 4.5, within_sleeve_pct: 22.5, dollars_on_10m: 450000}
+    QUAL: {total_portfolio_pct: 1.5, within_sleeve_pct: 7.5,  dollars_on_10m: 150000}
+    DFAC: {total_portfolio_pct: 1.5, within_sleeve_pct: 7.5,  dollars_on_10m: 150000}
+    DUHP: {total_portfolio_pct: 1.5, within_sleeve_pct: 7.5,  dollars_on_10m: 150000}
+    SPMO: {total_portfolio_pct: 1.0, within_sleeve_pct: 5.0,  dollars_on_10m: 100000}
+    DISV: {total_portfolio_pct: 4.0, within_sleeve_pct: 20.0, dollars_on_10m: 400000}
+    DFIV: {total_portfolio_pct: 3.0, within_sleeve_pct: 15.0, dollars_on_10m: 300000}
+    DFEV: {total_portfolio_pct: 3.0, within_sleeve_pct: 15.0, dollars_on_10m: 300000}
+  validation: {total_portfolio_sum_pct: 20.0, within_sleeve_sum_pct: 100.0}
+  temporary_tilt_rule: "Any weekly tactical allocation must be labeled one-contribution-only and must not silently change these targets."
+
+regional_allocation:
+  strict_component_view_pct_total_portfolio:
+    US_equities_ex_REIT: 46.8
+    developed_international_equities_ex_REIT: 28.6
+    emerging_markets_equities: 16.6
+    US_REIT: 1.6
+    international_REIT: 1.6
+    cash: 4.8
+    total: 100.0
+  simplified_rollup_pct_total_portfolio:
+    US_including_US_REIT: 48.4
+    developed_international_including_international_REIT: 30.2
+    emerging_markets: 16.6
+    cash: 4.8
+    total: 100.0
+  share_of_invested_risk_assets_excluding_cash_pct:
+    US_including_US_REIT: 50.84
+    developed_international_including_international_REIT: 31.72
+    emerging_markets: 17.44
+    total: 100.0
+  classification_caveat: "The simplified rollup assigns all HAUZ international REIT exposure to developed international for convenience; HAUZ may contain some emerging-market real estate exposure."
+  alternate_if_DFSV_was_intended_instead_of_DISV:
+    US_including_US_REIT_pct: 52.4
+    developed_international_including_international_REIT_pct: 26.2
+    emerging_markets_pct: 16.6
+    cash_pct: 4.8
+    methodology_totals_change: false
+    note: "Only regional classification changes; the factor and methodology totals remain the same."
+
+weighting_methodology:
+  mutually_exclusive_total_portfolio_buckets:
+    market_cap_and_modified_cap_equity:
+      pct: 38.1
+      holdings: ["SCHX","SCHG","SCHA","SCHF","SCHC","SPEM","QQQM"]
+    schwab_fundamental_index:
+      pct: 38.4
+      holdings: ["FNDX","FNDA","FNDF","FNDC","FNDE"]
+    dimensional_systematic:
+      pct: 13.0
+      holdings: ["DFAC","DUHP","DISV","DFIV","DFEV"]
+    standalone_quality_factor: {pct: 1.5, holdings: ["QUAL"]}
+    standalone_momentum_factor: {pct: 1.0, holdings: ["SPMO"]}
+    REITs: {pct: 3.2, holdings: ["SCHH","HAUZ"]}
+    cash: {pct: 4.8, holdings: ["Schwab robo cash allocation"]}
+    total_pct: 100.0
+  economic_factor_intent:
+    traditional_or_modified_market_cap_beta_and_growth_pct: 38.1
+    schwab_fundamental_value_leaning_pct: 38.4
+    dedicated_DFA_value_pct: 10.0
+    DFA_broad_core_pct: 1.5
+    explicit_quality_profitability_pct: 3.0
+    explicit_momentum_pct: 1.0
+    REIT_pct: 3.2
+    cash_pct: 4.8
+    total_pct: 100.0
+  value_oriented_exposure_definitions:
+    dedicated_DFA_value_only_pct: 10.0
+    schwab_fundamental_plus_dedicated_DFA_value_pct: 48.4
+    above_plus_DFAC_broad_systematic_tilt_pct: 49.9
+    interpretation: "Approximately 48% to 50% of the total portfolio is fundamental/value-aware, but this is not 50% pure conventional value."
+  high_level_construction:
+    market_cap_or_modified_cap_equity_pct: 38.1
+    fundamental_factor_or_systematic_equity_pct: 53.9
+    REIT_pct: 3.2
+    cash_pct: 4.8
+  equity_only_excluding_REITs_and_cash:
+    equity_pool_pct_total_portfolio: 92.0
+    market_cap_modified_cap_share_pct_of_equity: 41.41
+    schwab_fundamental_share_pct_of_equity: 41.74
+    dimensional_systematic_share_pct_of_equity: 14.13
+    QUAL_share_pct_of_equity: 1.63
+    SPMO_share_pct_of_equity: 1.09
+
+region_by_methodology_pct_total_portfolio:
+  US_equities: {market_cap_and_growth: 21.3, schwab_fundamental: 20.0, DFA_broad_core: 1.5, quality_and_profitability: 3.0, momentum: 1.0, total: 46.8}
+  developed_international_equities: {market_cap: 12.0, schwab_fundamental: 9.6, DFA_value: 7.0, total: 28.6}
+  emerging_markets_equities: {market_cap: 4.8, schwab_fundamental: 8.8, DFA_value: 3.0, total: 16.6}
+  REITs: 3.2
+  cash: 4.8
+  total: 100.0
+
+rebalancing_policy:
+  purpose: "Use contribution-based rebalancing for normal drift; reserve taxable selling mainly for hard-band breaches."
+  measurement_basis: "Apply bands to each holding's or monitored bucket's percentage of the total portfolio, not its percentage within the core or sleeve."
+  soft_band:
+    width_formula_percentage_points: "min(5.0, 0.25 * target_pct)"
+    lower_bound_formula: "max(0, target_pct - soft_width)"
+    upper_bound_formula: "target_pct + soft_width"
+    default_action:
+      - "Redirect new contributions toward underweight positions."
+      - "Reduce or pause new contributions to overweight positions."
+      - "Use dividends, distributions, and available cash."
+      - "Do not default to taxable selling."
+  hard_band:
+    width_formula_percentage_points: "min(10.0, 0.40 * target_pct)"
+    lower_bound_formula: "max(0, target_pct - hard_width)"
+    upper_bound_formula: "target_pct + hard_width"
+    additional_upside_concentration_trigger: "actual_pct > 2.0 * target_pct"
+    default_action:
+      - "Rebalance more affirmatively."
+      - "Use new contributions and cash first."
+      - "Consider tax-aware sales only if contribution-based correction is insufficient."
+      - "Prefer HIFO tax-lot selection."
+      - "Avoid selling lots held less than one year unless the hard breach genuinely requires it or Jason explicitly requests it."
+  priority_order:
+    - "Correct actual target gaps with new contributions."
+    - "Use cash and distributions."
+    - "Allow the Schwab robo to rebalance its own core."
+    - "Use tax-aware sales only for unresolved hard breaches or an explicit user instruction."
+  monitoring_scope:
+    manual_sleeve_ETFs: "Official operational band checks."
+    broad_regions: "Portfolio-level oversight checks."
+    core_underlying_ETFs: "Reference and monitoring only when Schwab controls rebalancing."
+    methodology_buckets: "Analytical decomposition; not independently rebalanced unless Jason adopts explicit targets for them."
+  tax_guardrails:
+    preferred_lot_method: "HIFO"
+    short_term_sale_rule: "Avoid sales of lots held less than one year unless a hard-band breach or explicit user instruction overrides."
+    default_bias: "Modify new contributions rather than sell."
+
+computed_rebalancing_bands:
+  note: |
+    The original handoff transcribed soft/hard bands for every bucket and position. They are
+    fully determined by the formulas above, so rather than duplicate ~30 derived tables here
+    (which would drift from the targets), they are generated on demand:
+        python3 tools/dca_calc.py --bands
+    That reads the live sleeve targets so the bands cannot go stale against the spec.
+
+operational_notes_for_another_AI:
+  - "Do not change strategic targets because of a one-week risk score or temporary sleeve tilt."
+  - "Before recommending a contribution tilt, compare current actual holdings with these targets; target-gap correction takes priority."
+  - "If actual holdings are unavailable, label any tactical sleeve allocation as provisional and one-contribution-only."
+  - "Do not classify DISV as U.S. small value."
+  - "Do not assume the rounded Schwab core model equals the current robo statement; verify when precision matters."
+  - "Do not roll HAUZ entirely into developed international without retaining the international-REIT classification caveat."
+  - "Recalculate geographic and methodology totals after any ticker or target change and verify that all portfolio weights sum to 100%."
+  - "Use total-portfolio weights when applying the soft and hard band formulas."
+
+# ---------------------------------------------------------------------------
+reconciliation_2026_08_24:
+  summary: "Checked against Schwab position exports dated 2026-08-24. Several figures do not hold."
+  base_figures_superseded:
+    portfolio_base_dollars: "10,000,000 -> total investable 10,788,478"
+    separate_cash_reserve: "1,000,000 -> does not exist; Jason confirmed the exports are the full picture"
+    robo_cash_pct: "4.8 -> 6.77 blended (5.69 / 6.40 / 7.10 / 7.38 by account, sized to risk profile)"
+  core_model_omissions:
+    bonds: |
+      The rounded core model lists NO fixed income. The robo actually holds SCHI, SCHR, SMBS,
+      MBB, EBND and EMLC - 6.35% of core invested, about 4.47% of total. Holdings are uneven
+      across accounts (Trust 1 ~10.6% fixed income; Individual and Roth none), consistent with
+      per-account risk profiles. The "invested_risk_assets 95.2 / cash 4.8" split has no place
+      for this.
+    SCHE: "Not in the model. Actually held: 83,018."
+    invesco_rafi: "PRF, PXF, PRFZ not in the model. Actually held: 59,682."
+    demsx: "Not in the model. Actually held: 598,619 - the single largest non-core position."
+    commodity_thematic: "AAAU, PALL, URA, BOTZ not in the model. Actually held: 31,296."
+  actual_robo_methodology_split:
+    note: "Derived from holdings, as % of core invested. The robo is MORE market-cap weighted than the model assumed."
+    market_cap: 45.20
+    schwab_fundamental: 42.05
+    bonds: 6.35
+    reit: 3.90
+    invesco_rafi: 2.51
+  unresolved_structural_issue: |
+    Core 80% + sleeve 20% of 10,788,478, PLUS DEMSX and the commodity holdings, sums to about
+    11.42M - more than the portfolio. The plan has no home for DEMSX. Either it counts inside
+    the 20% manual bucket (so the eight sleeve ETFs get correspondingly less) or the plan base
+    is ~10.16M with legacy alongside. This needs a decision before any total-portfolio target
+    percentage is precise.
+
+value_tilt_analysis_2026_08_24:
+  question: "Is Schwab Fundamental closer to market-cap or to value?"
+  finding: "Closer to market-cap than the binary bucketing implied. Roughly HALF a value tilt."
+  evidence:
+    rafi_value_loading: "About half that of the Fama-French Large Value index, in 3-factor regressions."
+    rafi_alpha: "Approximately zero (~0.1%/yr)."
+    rafi_size_loading: "Slightly negative - a large-cap bias, not a small tilt."
+    fndx_schx_correlation: "0.91, stable in a 0.81-0.91 range across timeframes."
+    fndx_10y_return: "15.07% annualized vs 14.11% for the S&P 500 - fundamental did not lag."
+    volatility: "FNDX 3.07% vs SCHX 2.99% - materially identical."
+    sources:
+      - "http://www.efficientfrontier.com/ef/0adhoc/fi.htm"
+      - "https://www.bogleheads.org/wiki/Fundamental_indices"
+      - "https://portfolioslab.com/tools/stock-comparison/FNDX/SCHX"
+      - "https://www.macroaxis.com/invest/pair-correlation/SCHX/FNDX/Schwab-vs-Schwab"
+  loading_weighted_result:
+    method: "Weight each holding by its value loading: pure DFA value 1.0, Schwab/Invesco RAFI 0.5, DFAC 0.2, market-cap and QQQM/QUAL/SPMO 0.0."
+    effective_value_tilt_pct_of_equity: 32.85
+    interpretation: "Portfolio behaves like ~33% true value index, ~67% cap-weighted."
+    binary_framing_for_contrast: "value 51.70% vs cap-like 48.30% - value appears to lead by 3.40pp"
+    loading_framing: "cap-like leads by 34.30pp"
+    conclusion: |
+      The apparent value-overweight was an artifact of counting a half-loaded fund as fully
+      value. Jason's instinct that fundamental sits closer to market-cap is correct.
+  where_the_tilt_actually_lives:
+    schwab_fundamental_robo: 55.1
+    DEMSX: 19.5
+    DISV: 7.5
+    DFIV: 7.5
+    DFEV: 6.2
+    invesco_rafi: 3.3
+    DFAC: 1.0
+    note: |
+      The robo supplies more than half the value exposure. The four DFA sleeve funds supply 21%
+      combined. A sleeve reweighting to fix a "value problem" would operate on a fifth of it.
+  decision: |
+    Tilt reweighting DROPPED. Scenarios proposed on 2026-08-24 (shifting the sleeve toward
+    QQQM/QUAL) were solving a problem the binary bucketing invented. Sleeve stays as revised.
+  caveat: |
+    The 0.5 loading comes from US large-cap studies (FNDX/SCHX, RAFI US). FNDF and FNDE are
+    developed-international and EM, where fundamental tilts have historically run stronger. If
+    FNDE's loading is 0.6-0.7, effective value tilt is a few points above 32.85%. Directionally
+    unchanged; do not treat 32.85% as precise.
+
+open_decision_emerging_markets:
+  status: "OPEN - Jason has not chosen."
+  target_requested: "~15% of total"
+  projected_without_change: 20.97
+  constraint: |
+    Robo EM alone is 12.93% of total at full deployment and DEMSX is 5.55%. That is 18.47%
+    before any DFEV. 15% is unreachable while holding DEMSX unless the robo allocation changes.
+  options:
+    A: {desc: "DFEV 2.5%, hold DEMSX", em_pct: 20.97, demsx_sold: 0, est_tax: 0}
+    B: {desc: "DFEV 0%, hold DEMSX", em_pct: 18.47, demsx_sold: 0, est_tax: 0}
+    C: {desc: "DFEV 2.5%, sell all DEMSX", em_pct: 15.43, demsx_sold: 598619, est_tax: 47663}
+    D: {desc: "DFEV 2.07%, sell all DEMSX", em_pct: 15.00, demsx_sold: 598619, est_tax: 47663}
+    E: {desc: "DFEV 0%, trim DEMSX to 223,321", em_pct: 15.00, demsx_sold: 375298, est_tax: 29882}
+    F: {desc: "Change robo risk profile - moves whole equity/bond and intl mix, not just EM"}
+  framing: "20.97 -> 18.47 is free. The last 3.47pp costs roughly 30-48k in tax."
+  tax_caveat: "Assumes pro-rata basis at 23.8%. Policy prefers HIFO, which would be lower. No lot detail supplied, so these are upper bounds."

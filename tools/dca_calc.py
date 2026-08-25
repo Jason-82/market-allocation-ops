@@ -107,6 +107,51 @@ def to_operational(mult: Decimal) -> Decimal:
     return (steps * Decimal("0.05")).quantize(Decimal("0.01"))
 
 
+# Strategic sleeve targets as % of TOTAL portfolio. Must match
+# supervisor/master_handoff.yaml strategic_sleeve_targets.total_portfolio_targets.
+SLEEVE_TARGETS_TPW = {
+    "QQQM": Decimal("4.5"), "QUAL": Decimal("2.0"), "DFAC": Decimal("2.0"),
+    "DUHP": Decimal("2.0"), "SPMO": Decimal("1.0"), "DISV": Decimal("3.0"),
+    "DFIV": Decimal("3.0"), "DFEV": Decimal("2.5"),
+}
+STRUCTURE_TARGETS_TPW = {"core": Decimal("80.0"), "manual_sleeve": Decimal("20.0")}
+
+
+def rebalance_bands(target_pct: Decimal) -> dict[str, Decimal]:
+    """Soft and hard bands per the allocation handoff's formulas.
+
+    soft width = min(5.0, 0.25 * target); hard width = min(10.0, 0.40 * target).
+    Bands are on percent-of-TOTAL-portfolio, never percent-within-core-or-sleeve.
+    """
+    soft = min(Decimal("5.0"), Decimal("0.25") * target_pct)
+    hard = min(Decimal("10.0"), Decimal("0.40") * target_pct)
+    q = lambda x: x.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    return {
+        "target": q(target_pct),
+        "soft_low": q(max(Decimal(0), target_pct - soft)),
+        "soft_high": q(target_pct + soft),
+        "hard_low": q(max(Decimal(0), target_pct - hard)),
+        "hard_high": q(target_pct + hard),
+        "two_x": q(Decimal(2) * target_pct),
+    }
+
+
+def render_bands() -> str:
+    lines = ["Rebalancing bands, percent of TOTAL portfolio",
+             "  soft width = min(5.0, 0.25 x target)   hard width = min(10.0, 0.40 x target)",
+             "  Above 2x target is also a hard breach.", "",
+             f"{'Bucket':<16}{'target':>8}{'soft_lo':>9}{'soft_hi':>9}{'hard_lo':>9}{'hard_hi':>9}{'2x':>8}"]
+    for name, tgt in list(STRUCTURE_TARGETS_TPW.items()) + list(SLEEVE_TARGETS_TPW.items()):
+        b = rebalance_bands(tgt)
+        lines.append(f"{name:<16}{b['target']:>8}{b['soft_low']:>9}{b['soft_high']:>9}"
+                     f"{b['hard_low']:>9}{b['hard_high']:>9}{b['two_x']:>8}")
+    total = sum(SLEEVE_TARGETS_TPW.values())
+    lines.append("")
+    lines.append(f"Sleeve targets sum to {total}% of total portfolio "
+                 f"({'OK' if total == Decimal('20.0') else 'MISMATCH - fix master_handoff.yaml'}).")
+    return "\n".join(lines)
+
+
 def contribution_math(mult: Decimal, baseline: Decimal = WEEKLY_BASELINE) -> dict[str, Decimal]:
     total = (baseline * mult).quantize(CENT, rounding=ROUND_HALF_UP)
     core = (total * CORE_SHARE).quantize(CENT, rounding=ROUND_HALF_UP)
@@ -268,6 +313,17 @@ def self_test() -> int:
         ("accelerate has no formula", raw_multiplier(d("20")), None),
     ]
 
+    # Band formulas, including the min() caps that bite at large targets.
+    b80 = rebalance_bands(d("80.0")); b45 = rebalance_bands(d("4.5")); b1 = rebalance_bands(d("1.0"))
+    checks += [
+        ("band 80 soft (5.0 cap binds)", b80["soft_low"], d("75.00")),
+        ("band 80 hard (10.0 cap binds)", b80["hard_low"], d("70.00")),
+        ("band 4.5 soft (25% applies)", b45["soft_high"], d("5.63")),
+        ("band 4.5 hard (40% applies)", b45["hard_low"], d("2.70")),
+        ("band 1.0 never negative", b1["hard_low"], d("0.60")),
+        ("sleeve targets sum to 20%", sum(SLEEVE_TARGETS_TPW.values()), d("20.0")),
+    ]
+
     # Sleeve lines reconcile exactly to the sleeve amount.
     normal = {
         "QQQM": d("0.225"), "QUAL": d("0.100"), "DFAC": d("0.100"), "DUHP": d("0.100"),
@@ -303,6 +359,8 @@ def self_test() -> int:
 def main(argv: list[str]) -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--self-test", action="store_true")
+    p.add_argument("--bands", action="store_true",
+                   help="Print soft/hard rebalancing bands for the current strategic targets")
     p.add_argument("--asof")
     p.add_argument("--baseline", default=str(WEEKLY_BASELINE))
     p.add_argument("--robo-cash", default=None,
@@ -315,6 +373,10 @@ def main(argv: list[str]) -> int:
 
     if a.self_test:
         return self_test()
+
+    if a.bands:
+        print(render_bands())
+        return 0
 
     raw_scores = {m: getattr(a, m) for m in WEIGHTS}
     if any(v is None for v in raw_scores.values()):
