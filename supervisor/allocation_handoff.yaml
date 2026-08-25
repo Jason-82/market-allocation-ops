@@ -63,7 +63,7 @@ rounded_schwab_core_model:
   validation: {within_core_sum_pct: 100.0, total_portfolio_sum_pct: 80.0}
 
 strategic_manual_sleeve:
-  status: "Targets as recorded in this handoff. SUPERSEDED by the 2026-08-24 revision in master_handoff.yaml."
+  status: "Targets as recorded in this handoff. SUPERSEDED by revision_2026_08_25_hybrid in master_handoff.yaml (DISV 4.0 retained, DFEV 2.5, QUAL 2.0, DFAC/DUHP 1.5)."
   holdings:
     QQQM: {total_portfolio_pct: 4.5, within_sleeve_pct: 22.5, dollars_on_10m: 450000}
     QUAL: {total_portfolio_pct: 1.5, within_sleeve_pct: 7.5,  dollars_on_10m: 150000}

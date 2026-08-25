@@ -97,22 +97,22 @@ strategic_sleeve_targets:
   total_portfolio_targets:
     QQQM: 0.045
     QUAL: 0.020
-    DFAC: 0.020
-    DUHP: 0.020
+    DFAC: 0.015
+    DUHP: 0.015
     SPMO: 0.010
-    DISV: 0.030
+    DISV: 0.040
     DFIV: 0.030
     DFEV: 0.025
   normal_within_sleeve_weights:
     QQQM: 0.225
     QUAL: 0.100
-    DFAC: 0.100
-    DUHP: 0.100
+    DFAC: 0.075
+    DUHP: 0.075
     SPMO: 0.050
-    DISV: 0.150
+    DISV: 0.200
     DFIV: 0.150
     DFEV: 0.125
-  revision_2026_08_25:
+  revision_2026_08_25_PLACEHOLDER:
     approved_by: "Jason, 2026-08-24"
     change: |
       DISV 0.040 -> 0.030 and DFEV 0.030 -> 0.025; the freed 1.5pp went to QUAL, DFAC and

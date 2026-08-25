@@ -110,8 +110,8 @@ def to_operational(mult: Decimal) -> Decimal:
 # Strategic sleeve targets as % of TOTAL portfolio. Must match
 # supervisor/master_handoff.yaml strategic_sleeve_targets.total_portfolio_targets.
 SLEEVE_TARGETS_TPW = {
-    "QQQM": Decimal("4.5"), "QUAL": Decimal("2.0"), "DFAC": Decimal("2.0"),
-    "DUHP": Decimal("2.0"), "SPMO": Decimal("1.0"), "DISV": Decimal("3.0"),
+    "QQQM": Decimal("4.5"), "QUAL": Decimal("2.0"), "DFAC": Decimal("1.5"),
+    "DUHP": Decimal("1.5"), "SPMO": Decimal("1.0"), "DISV": Decimal("4.0"),
     "DFIV": Decimal("3.0"), "DFEV": Decimal("2.5"),
 }
 STRUCTURE_TARGETS_TPW = {"core": Decimal("80.0"), "manual_sleeve": Decimal("20.0")}
@@ -326,8 +326,8 @@ def self_test() -> int:
 
     # Sleeve lines reconcile exactly to the sleeve amount.
     normal = {
-        "QQQM": d("0.225"), "QUAL": d("0.100"), "DFAC": d("0.100"), "DUHP": d("0.100"),
-        "SPMO": d("0.050"), "DISV": d("0.150"), "DFIV": d("0.150"), "DFEV": d("0.125"),
+        "QQQM": d("0.225"), "QUAL": d("0.100"), "DFAC": d("0.075"), "DUHP": d("0.075"),
+        "SPMO": d("0.050"), "DISV": d("0.200"), "DFIV": d("0.150"), "DFEV": d("0.125"),
     }
     lines = sleeve_lines(res["sleeve_amount"], normal)
     checks.append(("sleeve lines sum", sum(lines.values(), d(0)), res["sleeve_amount"]))
