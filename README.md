@@ -43,6 +43,8 @@ supervisor/master_handoff.yaml       authoritative spec — weights, formulas, r
 supervisor/continuity_snapshot.yaml  last recorded run (prior-run comparison only)
 supervisor/packet_template.md        module packet contract
 tools/dca_calc.py                    deterministic score/band/dollar arithmetic
+lp_bot/                              experimental cross-chain LP scanner and paper-trading
+                                     position manager (see lp_bot/README.md)
 ```
 
 ## Usage

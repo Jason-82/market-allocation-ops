@@ -1,2 +1,6 @@
 __pycache__/
 *.py[cod]
+lp_bot_state.json
+lp_bot.STOP
+*.key
+.env
