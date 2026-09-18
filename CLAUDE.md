@@ -39,8 +39,10 @@ arithmetic internally. Bands: <35 accelerate (1.25–1.50x), 35–<60 baseline (
 (`0.75 - (score-60)*0.0125`, rounded to nearest 0.05x), ≥80 minimal (0.00–0.25x). Never extend the
 slow-band formula past 80.
 
-Weekly baseline **$250,000** (rescaled 2026-08-24 from $312,500 when the investable total went
-from ~$10M to ~$8M). Deploy = baseline × operational multiplier; 80% core (Schwab Intelligent
+Weekly baseline **$215,000** (rescaled 2026-09-18 from $250,000 after ~$1M of unexpected tax
+bills; itself rescaled 2026-08-24 from $312,500). The baseline is sized against **remaining
+deployable cash**, not total investable, to hold the horizon near 28.6 weeks at 1.0x — scale the
+baseline when the pot changes, never the multiplier. Deploy = baseline × operational multiplier; 80% core (Schwab Intelligent
 Portfolios, report the dollar amount only), 20% manual sleeve; holdback = baseline − deploy.
 
 The robo parks cash in the core and it cannot be turned off, so always report the **effective**
@@ -57,8 +59,12 @@ Never gross the core up to compensate — the program rebalances back to its cas
 
 - **Never** reconstruct a module score from public proxies. A prior Supervisor did this and produced
   scores inconsistent with the agents.
-- **Never** compare a dollar figure from before 2026-08-24 with one after it without noting the
-  baseline change from $312,500 to $250,000. Multipliers and scores stay comparable; dollars do not.
+- **Never** compare dollar figures across baseline eras without noting which applies:
+  $312,500 through 2026-08-23, $250,000 from 2026-08-24, **$215,000 from 2026-09-18**.
+  Multipliers and scores stay comparable across all three; dollars do not.
+- The $215,000 baseline rests on an **unconfirmed assumption** of no contributions between
+  2026-08-25 and 2026-09-18. Confirm the contribution ledger with Jason and rescale if wrong;
+  each missed contribution lowers it by about $5,680.
 - **Never** state cumulative reserve, amount invested to date, remaining balance, current portfolio
   value, or a settled contribution day unless Jason supplied it. These are not inferable from the
   multiplier.

@@ -22,8 +22,36 @@ money_map:
     Part of it is a long-term fund that will distribute over time, so it is not all immediately
     liquid. There is NO separate 1M reserve; an earlier reference to one was withdrawn.
 
+tax_event_2026_09_18:
+  reported_by: "Jason, 2026-09-18"
+  event: "Amended returns produced large tax bills; approximately 1,000,000 less available than planned."
+  effect_on_deployable_cash: "7,152,472.69 -> 6,152,472.69 (before any contributions made since 2026-08-25)"
+  effect_on_total_investable: "10,788,478 -> approximately 9,788,478"
+  baseline_response:
+    old: 250000
+    new: 215000
+    method: "Proportional to remaining deployable cash, preserving the ~28.6-week horizon at 1.0x."
+    why_not_hold_250000: |
+      Holding the weekly dollar amount against a smaller pot shortens the horizon, which means
+      deploying FASTER relative to remaining capital. The modules read Slow DCA, so that is the
+      wrong direction. Scaling the baseline preserves both the horizon and the risk posture.
+    why_not_change_the_multiplier: |
+      The multiplier answers "given current risk, faster or slower than plan". Capital
+      availability is not a risk signal. Changing the multiplier for a tax bill would corrupt
+      the comparison of multipliers across runs.
+  UNCONFIRMED_ASSUMPTION: |
+    Assumes NO contributions between 2026-08-25 and 2026-09-18. Jason has not supplied a
+    ledger and it is not inferable from the multiplier. If contributions were made, each one
+    lowers the correct baseline by about 5,680: 1 -> 210,000, 2 -> 205,000, 3 -> 200,000,
+    4 -> 190,000. Confirm before relying on 215,000.
+  open_question: |
+    Whether the tax bills are already paid or still outstanding. Either way deployable cash
+    falls by 1,000,000, so the baseline math is unchanged, but if unpaid that sum must sit in
+    cash and must not be deployed in the interim.
+
 deployment_horizon:
-  weekly_baseline: 250000
+  weekly_baseline: 215000
+  superseded_baseline_2026_08_24: 250000
   weeks_at_1_0x: 28.6
   weeks_at_0_65x: 44.0
   baseline_review_2026_08_24: |

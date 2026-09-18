@@ -33,12 +33,23 @@ WEIGHTS = {
     "valuation": Decimal("0.10"),
 }
 
-WEEKLY_BASELINE = Decimal("250000")
+# Rescaled 2026-09-18 after Jason reported ~1,000,000 of unexpected tax bills from amended
+# returns. Scaled proportionally to remaining deployable cash so the DEPLOYMENT HORIZON is
+# preserved (~28.6 weeks at 1.0x) rather than the weekly dollar amount. Holding 250,000 with a
+# smaller pot would have accelerated deployment relative to capital, the wrong direction while
+# the modules read Slow DCA.
+#
+# ASSUMPTION REQUIRING CONFIRMATION: assumes NO contributions between 2026-08-25 and
+# 2026-09-18, i.e. deployable cash 7,152,472.69 - 1,000,000 = 6,152,472.69. Each contribution
+# actually made in that window lowers this baseline by roughly 5,680. Jason has not supplied a
+# ledger and it is not inferable.
+WEEKLY_BASELINE = Decimal("215000")
 
 # The 2026-08-14 run predates the 2026-08-24 rescale and used a $312,500 baseline.
 # The self-test reconciles against it at its own baseline; do not "fix" this to the
 # current value or the historical reconciliation silently breaks.
 HISTORICAL_BASELINE_2026_08_14 = Decimal("312500")
+BASELINE_2026_08_24 = Decimal("250000")   # superseded 2026-09-18; kept so its run stays testable
 CORE_SHARE = Decimal("0.80")
 SLEEVE_SHARE = Decimal("0.20")
 
@@ -335,7 +346,7 @@ def self_test() -> int:
     checks.append(("deploy+holdback == baseline", res["total_deploy"] + res["incremental_holdback"], d("312500.00")))
 
     # Current-baseline arithmetic at the same 0.65x, so a rescale regression is caught.
-    cur = compute(scores, confs)
+    cur = compute(scores, confs, BASELINE_2026_08_24)
     checks += [
         ("current baseline", cur["weekly_baseline"], d("250000.00")),
         ("current deploy @0.65x", cur["total_deploy"], d("162500.00")),
@@ -345,6 +356,21 @@ def self_test() -> int:
         ("robo cash parked", cur["cash_parked_in_core"], d("8801.00")),
         ("market deploy", cur["market_deploy"], d("153699.00")),
         ("effective mult", cur["effective_multiplier"], d("0.6148")),
+    ]
+
+    # Current baseline (215,000) at the same 0.65x. The effective multiplier is a ratio, so it
+    # must come out identical to the 250,000 row - a check that the rescale changed only scale.
+    new = compute(scores, confs)
+    checks += [
+        ("new baseline", new["weekly_baseline"], d("215000.00")),
+        ("new deploy @0.65x", new["total_deploy"], d("139750.00")),
+        ("new core", new["core_amount"], d("111800.00")),
+        ("new sleeve", new["sleeve_amount"], d("27950.00")),
+        ("new holdback", new["incremental_holdback"], d("75250.00")),
+        ("new market deploy", new["market_deploy"], d("132181.14")),
+        ("new effective mult", new["effective_multiplier"], d("0.6148")),
+        ("rescale preserves effective mult",
+         new["effective_multiplier"], cur["effective_multiplier"]),
     ]
 
     failed = 0
