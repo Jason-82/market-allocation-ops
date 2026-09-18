@@ -39,8 +39,9 @@ arithmetic internally. Bands: <35 accelerate (1.25–1.50x), 35–<60 baseline (
 (`0.75 - (score-60)*0.0125`, rounded to nearest 0.05x), ≥80 minimal (0.00–0.25x). Never extend the
 slow-band formula past 80.
 
-Weekly baseline **$215,000** (rescaled 2026-09-18 from $250,000 after ~$1M of unexpected tax
-bills; itself rescaled 2026-08-24 from $312,500). The baseline is sized against **remaining
+Weekly baseline **$205,000** (set 2026-09-18 from the confirmed ledger: cash $7,152,472.69 less
+$230,000 deployed since 08-25 less a $1,000,000 tax reserve = $5,922,472.69 deployable; itself
+rescaled 2026-08-24 from $312,500 and 2026-09-18 from $250,000). The baseline is sized against **remaining
 deployable cash**, not total investable, to hold the horizon near 28.6 weeks at 1.0x — scale the
 baseline when the pot changes, never the multiplier. Deploy = baseline × operational multiplier; 80% core (Schwab Intelligent
 Portfolios, report the dollar amount only), 20% manual sleeve; holdback = baseline − deploy.
@@ -60,11 +61,13 @@ Never gross the core up to compensate — the program rebalances back to its cas
 - **Never** reconstruct a module score from public proxies. A prior Supervisor did this and produced
   scores inconsistent with the agents.
 - **Never** compare dollar figures across baseline eras without noting which applies:
-  $312,500 through 2026-08-23, $250,000 from 2026-08-24, **$215,000 from 2026-09-18**.
+  $312,500 through 2026-08-23, $250,000 from 2026-08-24, **$205,000 from 2026-09-18**.
   Multipliers and scores stay comparable across all three; dollars do not.
-- The $215,000 baseline rests on an **unconfirmed assumption** of no contributions between
-  2026-08-25 and 2026-09-18. Confirm the contribution ledger with Jason and rescale if wrong;
-  each missed contribution lowers it by about $5,680.
+- The **$1,000,000 tax reserve is earmarked, not paid.** Keep it out of deployable cash and never
+  deploy against it until Jason says the bills are settled.
+- Jason does **not** always execute the published split. Between 2026-08-25 and 2026-09-18 he
+  sent $230,000 entirely to the robo core and nothing to the manual sleeve. Ask for the ledger
+  rather than assuming the plan was followed; core/sleeve drift is not inferable.
 - **Never** state cumulative reserve, amount invested to date, remaining balance, current portfolio
   value, or a settled contribution day unless Jason supplied it. These are not inferable from the
   multiplier.

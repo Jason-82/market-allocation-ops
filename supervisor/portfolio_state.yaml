@@ -39,15 +39,37 @@ tax_event_2026_09_18:
       The multiplier answers "given current risk, faster or slower than plan". Capital
       availability is not a risk signal. Changing the multiplier for a tax bill would corrupt
       the comparison of multipliers across runs.
-  UNCONFIRMED_ASSUMPTION: |
-    Assumes NO contributions between 2026-08-25 and 2026-09-18. Jason has not supplied a
-    ledger and it is not inferable from the multiplier. If contributions were made, each one
-    lowers the correct baseline by about 5,680: 1 -> 210,000, 2 -> 205,000, 3 -> 200,000,
-    4 -> 190,000. Confirm before relying on 215,000.
-  open_question: |
-    Whether the tax bills are already paid or still outstanding. Either way deployable cash
-    falls by 1,000,000, so the baseline math is unchanged, but if unpaid that sum must sit in
-    cash and must not be deployed in the interim.
+  LEDGER_CONFIRMED_2026_09_18:
+    contributions_since_2026_08_25:
+      - {date: "2026-08-25", amount: 130000, destination: "robo core"}
+      - {date: "2026-09-01", amount: 50000, destination: "robo core"}
+      - {date: "2026-09-17", amount: 50000, destination: "robo core"}
+    contributions_total: 230000
+    contributions_to_core: 230000
+    contributions_to_manual_sleeve: 0
+    cash_after: 6922472.69
+    tax_reserve_earmarked: 1000000
+    deployable_cash: 5922472.69
+    baseline_final: 205000
+    note: |
+      The placeholder 215,000 assumed no contributions and was 10,000 too high. Corrected.
+      The tax reserve is EARMARKED, NOT PAID. It stays in cash and is excluded from deployable
+      cash. Do not deploy against it until Jason confirms the bills are settled.
+
+  CORE_SLEEVE_DRIFT_2026_09_18:
+    finding: |
+      All 230,000 of recent contributions went to the robo core. The eight manual sleeve ETFs
+      received nothing for three weeks. Jason does not always execute the published split - on
+      2026-08-25 the core portion was sent but the 32,500 sleeve portion was not.
+    robo_bucket: 2509488.66
+    eight_sleeve_etfs: 178773.90
+    two_readings:
+      demsx_outside_the_20pct: "core 93.3% : sleeve 6.7% vs 80:20 target. Restoring it needs ~448,598 - about 16 weeks of full sleeve contributions."
+      demsx_inside_the_20pct: "core 75.6% : manual 24.4% - manual is already OVER target and the core would be the underweight."
+    conclusion: |
+      The two readings point in OPPOSITE directions. No catch-up tilt was applied; the standard
+      80/20 is the neutral choice until the DEMSX scope question is settled. That question is
+      now blocking an operational decision, not just an analytical one.
 
 deployment_horizon:
   weekly_baseline: 215000

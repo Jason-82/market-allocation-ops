@@ -39,11 +39,14 @@ WEIGHTS = {
 # smaller pot would have accelerated deployment relative to capital, the wrong direction while
 # the modules read Slow DCA.
 #
-# ASSUMPTION REQUIRING CONFIRMATION: assumes NO contributions between 2026-08-25 and
-# 2026-09-18, i.e. deployable cash 7,152,472.69 - 1,000,000 = 6,152,472.69. Each contribution
-# actually made in that window lowers this baseline by roughly 5,680. Jason has not supplied a
-# ledger and it is not inferable.
-WEEKLY_BASELINE = Decimal("215000")
+# Confirmed 2026-09-18 against Jason's actual ledger, replacing the placeholder 215,000 that
+# had assumed no contributions. Deployed since 2026-08-25: 130,000 (08-25) + 50,000 (09-01)
+# + 50,000 (09-17) = 230,000, ALL to the robo core, nothing to the manual sleeve.
+#   cash 7,152,472.69 - 230,000 deployed - 1,000,000 tax reserve = 5,922,472.69 deployable
+#   250,000 x 5,922,472.69 / 7,152,472.69 = 207,008 -> rounded to 205,000
+# The 1,000,000 is EARMARKED for tax, not yet paid. It must stay in cash and must not be
+# deployed; it is excluded from deployable cash rather than netted against the portfolio.
+WEEKLY_BASELINE = Decimal("205000")
 
 # The 2026-08-14 run predates the 2026-08-24 rescale and used a $312,500 baseline.
 # The self-test reconciles against it at its own baseline; do not "fix" this to the
@@ -362,15 +365,31 @@ def self_test() -> int:
     # must come out identical to the 250,000 row - a check that the rescale changed only scale.
     new = compute(scores, confs)
     checks += [
-        ("new baseline", new["weekly_baseline"], d("215000.00")),
-        ("new deploy @0.65x", new["total_deploy"], d("139750.00")),
-        ("new core", new["core_amount"], d("111800.00")),
-        ("new sleeve", new["sleeve_amount"], d("27950.00")),
-        ("new holdback", new["incremental_holdback"], d("75250.00")),
-        ("new market deploy", new["market_deploy"], d("132181.14")),
+        ("new baseline", new["weekly_baseline"], d("205000.00")),
+        ("new deploy @0.65x", new["total_deploy"], d("133250.00")),
+        ("new core", new["core_amount"], d("106600.00")),
+        ("new sleeve", new["sleeve_amount"], d("26650.00")),
+        ("new holdback", new["incremental_holdback"], d("71750.00")),
         ("new effective mult", new["effective_multiplier"], d("0.6148")),
         ("rescale preserves effective mult",
          new["effective_multiplier"], cur["effective_multiplier"]),
+    ]
+
+    # The live 2026-09-18 run: five fresh packets, 0.70x at the 205,000 baseline.
+    live = compute({"quant": d(97), "macro": d(44), "liquidity": d(10),
+                    "sentiment": d(63), "valuation": d(86)},
+                   {"quant": d(82), "macro": d(85), "liquidity": d(93),
+                    "sentiment": d(82), "valuation": d(80)})
+    checks += [
+        ("2026-09-18 overall", live["overall_risk_score"], d("64.5")),
+        ("2026-09-18 wconf", live["weighted_confidence"], d("84.6")),
+        ("2026-09-18 regime", live["regime"], "Slow DCA"),
+        ("2026-09-18 raw mult", live["raw_multiplier"], d("0.693750")),
+        ("2026-09-18 op mult", live["operational_multiplier"], d("0.70")),
+        ("2026-09-18 deploy", live["total_deploy"], d("143500.00")),
+        ("2026-09-18 core", live["core_amount"], d("114800.00")),
+        ("2026-09-18 sleeve", live["sleeve_amount"], d("28700.00")),
+        ("2026-09-18 holdback", live["incremental_holdback"], d("61500.00")),
     ]
 
     failed = 0

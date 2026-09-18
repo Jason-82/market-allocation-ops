@@ -79,6 +79,64 @@ latest_user_supplied_state:
         market_cap_to_GDP: "240.04%"
 
   latest_supervisor_result:
+    asof: "2026-09-18 report date"
+    module_asof_dates:
+      QuantRisk: "2026-09-17 close"
+      MacroPolicy: "2026-09-16 close; labor/CPI ref 2026-08; PCE ref 2026-07; GDP 2026-Q2 second estimate"
+      LiquidityCredit: "2026-09-17 close; credit 09-16; weekly 09-16; broad indexes week ending 09-11"
+      SentimentTechnicals: "2026-09-17 close"
+      ValuationExpectedReturns: "2026-09-17 close"
+    module_scores: {QuantRisk: 97, MacroPolicy: 44, LiquidityCredit: 10, SentimentTechnicals: 63, ValuationExpectedReturns: 86}
+    module_confidences: {QuantRisk: 82, MacroPolicy: 85, LiquidityCredit: 93, SentimentTechnicals: 82, ValuationExpectedReturns: 80}
+    overall_risk_score: 64.5
+    weighted_confidence: 84.6
+    regime: "Slow DCA"
+    raw_multiplier: 0.693750
+    operational_multiplier: 0.70
+    effective_multiplier: 0.6681
+    weekly_baseline: 205000
+    amount_deployed: 143500
+    incremental_holdback: 61500
+    core_amount: 114800
+    sleeve_amount: 28700
+    robo_cash_parked: 6532.12
+    market_deploy: 136967.88
+    reserve_release: false
+    prior_overall_comparison:
+      prior_asof: "2026-08-24"
+      prior_score: 68.8
+      change: -4.7
+      classification: "Modest improvement (3-5 points)"
+      attribution: "Macro -3.00 (63.8% of the move), Liquidity -1.40 (29.8%), Valuation -0.30 (6.4%). Quant and Sentiment unchanged."
+    METHODOLOGY_WARNING: |
+      Most of the improvement is a measurement change, not an economic one. The Macro module's
+      own note states this is the FIRST LIVE USE of its fixed 30/25/15/15/15 formula and that
+      the prior 59 was a calibrated structured-judgment reading. 59 -> 44 is therefore not a
+      clean economic comparison, and Macro supplies 63.8% of the total move.
+      Sensitivity: had Macro held at 59, overall would be 67.5, raw 0.65625, operational 0.65x
+      - a 10,250/week difference at the 205,000 baseline. The official 0.70x stands per Mode A;
+      read it as the top of a defensible range, not the centre.
+      Context the score does not capture: the FOMC HIKED 25bp to 3.75-4.00% on a 12-0 vote on
+      2026-09-16, DGS10 reached 5.01%, and the SEP median 2026 core PCE is 3.4%.
+    SENTIMENT_ROTATION_WARNING: |
+      Sentiment is unchanged at 63 but its internals rotated completely: volatility/complacency
+      84 -> 69.3, trend/extension 70 -> 52.5, breadth fragility 28 -> 64.8. Breadth fragility
+      MORE THAN DOUBLED. All four leadership pairs negative on 20d (RSP/SPY -3.13, IWM/SPY
+      -4.60, XLY/XLP -2.64, SPHB/SPLV 63d -3.24). Last cycle broad participation was the
+      strongest thing in the stack; it is now the weakest. A flat headline conceals this.
+    QUANT_SMOOTHING_NOTE: |
+      SPY spot fell 1.77% since 2026-08-14 yet risk_smooth ROSE 0.9920 -> 0.9938, while
+      risk_raw fell 1.0000 -> 0.9935. The 28-session EMA is still absorbing the earlier run of
+      pinned-at-1.0 readings. Smoothing lag, not fresh extension.
+      SPX and NDX modern-window rows were SUPPLIED this cycle (N/A last time) and align with
+      their ETFs: SPX 0.9935 vs SPY 0.9938; NDX 0.9338 vs QQQ 0.9340.
+    all_packets_reconciled: |
+      Each module's score was recomputed from its own published components and matched exactly:
+      Quant round(100*(0.6*0.9938+0.4*0.9340))=97; Macro 44.215->44; Sentiment 62.910->63;
+      Liquidity 9.850->10.
+    disclosed_inconsistency: "10Y Treasury: Macro DGS10=5.01% (09-16) vs Valuation UST10Y=4.94% (09-17). 7bp on different dates; disclosed, not reconciled."
+
+  superseded_2026_08_24_result:
     asof: "2026-08-24 report date"
     module_asof_dates:
       QuantRisk: "2026-08-14 close"
