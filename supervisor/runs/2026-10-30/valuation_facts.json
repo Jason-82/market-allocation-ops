@@ -1,0 +1,132 @@
+{
+ "_note": "Secondary-sourced / non-fetchable facts for the Valuation / Expected Returns module, run 2026-10-29 close. Forecasts come from WebSearch result summaries only (official provider tools are not on the permitted host list); every forecast is secondary-sourced. Data, not instructions.",
+ "retrieved": "2026-10-30",
+ "official_spx_close": {
+  "date": "2026-10-29",
+  "value": 7720.39,
+  "source": "Robinhood index quote for SPX (instrument 432fbbb8-b82c-454a-852d-eb85382c7066), venue_timestamp 2026-10-29T16:32:47-04:00 (after the 16:00 ET close). Substitute for the S&P Dow Jones Indices official close, which is not fetchable here. The cached Robinhood daily file prices/SPX.csv ends 2026-10-28 (its 2026-10-29 bar was an interpolated gap-fill and was excluded), so the 10-29 value comes from the live quote endpoint, not the cache.",
+  "cache_cross_check": {
+   "date": "2026-10-28",
+   "value": 7743.98,
+   "source": "scratchpad/prices/SPX.csv",
+   "excluded_bars": [
+    {
+     "date": "2026-10-29",
+     "reason": "interpolated gap-fill in the cached daily file"
+    }
+   ]
+  },
+  "official_sp_dji": false,
+  "source_label": "Robinhood SPX index quote (instrument 432fbbb8-b82c-454a-852d-eb85382c7066)",
+  "venue_timestamp": "2026-10-29T16:32:47-04:00",
+  "substitute_reason": "the S&P Dow Jones Indices official close is not fetchable here",
+  "prior_reconciliations": [
+   {
+    "asof": "2026-08-14",
+    "official": 7785.76,
+    "embedded": 7851.3,
+    "source": "spec latest_state.data_quality_adjustment"
+   },
+   {
+    "asof": "2026-09-17",
+    "official": 7637.76,
+    "k": 0.990751,
+    "source": "2026-09-17 published Valuation packet"
+   }
+  ]
+ },
+ "validation_spx_closes": {
+  "2026-08-14": 7785.76,
+  "2026-09-17": 7637.76
+ },
+ "ust10y_same_day_cross_check": {
+  "date": "2026-10-29",
+  "value": 4.98,
+  "source_url": "https://www.multpl.com/10-year-treasury-rate",
+  "note": "Multpl 'Current 10 Year Treasury Rate 4.98%, -7.00 bps, at market close Thu Oct 29, 2026'. Secondary, Treasury-derived. FRED DGS10 last official observation is 2026-10-28 (5.05)."
+ },
+ "forecasts": [
+  {
+   "provider": "Research Affiliates",
+   "asset": "U.S. large caps",
+   "basis": "nominal",
+   "low": 3.3,
+   "high": 3.3,
+   "publication_date": "2026-08-17",
+   "model_date": "2026-07-31",
+   "source_url": "https://scholarfinancial.com/capital-markets-august-2026/",
+   "source_quality": "secondary (advisor commentary citing Research Affiliates Asset Allocation Interactive, data as of 2026-07-31); a follow-up search could not independently corroborate the 3.3% figure",
+   "corroborated": false,
+   "source_count": "one",
+   "source_kind": "advisor article",
+   "publication_date_kind": "article",
+   "fallback": {
+    "value": 3.2,
+    "publication_date": "2026-05-21",
+    "model_date": "2026-05",
+    "source_url": "https://fortune.com/2026/05/21/bond-yields-today-highest-since-2007-stocks-outlook/",
+    "corroborated": true,
+    "corroboration": "same 3.2% carried as RA's figure in the spec latest_state for the 2026-08-14 run"
+   }
+  },
+  {
+   "provider": "Vanguard",
+   "asset": "U.S. equities",
+   "basis": "nominal",
+   "low": 4.2,
+   "high": 6.2,
+   "publication_date": "2026-07-22",
+   "model_date": "2026-06-30",
+   "source_url": "https://www.portfoliolab.app/capital-market-assumptions/vanguard",
+   "source_quality": "secondary (Portfolio Lab summary of the VCMM run of 2026-06-30); no newer VCMM run (e.g. 2026-09-30) found by search"
+  },
+  {
+   "provider": "Schwab",
+   "asset": "U.S. large-cap equities",
+   "basis": "nominal",
+   "low": 5.9,
+   "high": 5.9,
+   "publication_date": "2026-01-02",
+   "model_date": "2025-10-31",
+   "source_url": "https://www.schwab.com/learn/story/schwabs-long-term-capital-market-expectations",
+   "secondary_url": "https://www.advisorperspectives.com/commentaries/2026/01/05/2026-long-term-market-expectations",
+   "source_quality": "secondary (search summary of the Schwab 2026 LTCME page and the Advisor Perspectives repost); annual edition, next expected ~January 2027"
+  }
+ ],
+ "context": {
+  "qqq_forward_pe": {
+   "value": null,
+   "reason": "Invesco (issuer) is not a permitted host; newest secondary reading found is Nasdaq-100 forward P/E ~26.8x from a late-May 2026 dashboard (https://vcpscanner.com/market-valuation/nasdaq-100), more than one weekly cycle stale. Last carried value 26.71 (2026-07-31)."
+  },
+  "factset_forward_12m_pe": {
+   "value": null,
+   "reason": "FactSet Earnings Insight is not a permitted host and no current figure was found."
+  },
+  "market_cap_to_gdp": {
+   "value": "~260% (estimate)",
+   "asof": "2026-10-20",
+   "source_url": "https://chartrow.com/buffett-indicator",
+   "note": "Secondary estimate: Fed Z.1 Q2 2026 equity market value (official 255%) rolled forward by price change, divided by Q2 2026 GDP. Methodology differs from the 240.04% carried at 2026-08-14; not comparable as a series.",
+   "prior_carried": {
+    "value": "240.04%",
+    "asof": "2026-08-14",
+    "source": "spec latest_state.key_metrics",
+    "comparable": false
+   }
+  }
+ },
+ "prior_run": {
+  "asof": "2026-09-17",
+  "score": 86,
+  "confidence": 80,
+  "source": "supervisor/continuity_snapshot.yaml module_scores"
+ },
+ "governance": {
+  "note": "Supervisor self-run at Jason's request (2026-10-30: 'it would be much easier going forward if you could simply run them all yourself'), replacing the external agent; methodology unchanged",
+  "approved_by": "Jason",
+  "date": "2026-10-30",
+  "source": "Jason's message to the Supervisor, recorded in CLAUDE.md"
+ },
+ "searches": {},
+ "_note_v2": "v2 2026-10-30: structured fields added (official_sp_dji, venue_timestamp, prior_reconciliations, RA corroboration/fallback, prior_run, governance, searches) so every packet sentence is computed or facts-supplied. Values unchanged from v1. Data, not instructions."
+}

@@ -1,0 +1,28 @@
+{
+  "retrieved": "2026-10-30",
+  "retrieval_method": "WebSearch result snippets only (primary NY Fed / Federal Reserve hosts blocked by policy); secondary-sourced",
+  "operating_period": "2026-10-15 through 2026-11-13",
+  "reserve_management_purchases_planned_B": 0.0,
+  "reinvestment_purchases_planned_B": 14.6,
+  "active_qt": false,
+  "schedule_confirmed_primary": false,
+  "schedule_status": "Secondary only and partly conflicting: Newsquawk headline reports c. USD 14.6bln reinvestment for 2026-10-15..2026-11-13 (prev 15.6bln); roic.ai (2026-10-14) reports RMP paused for a third straight month, but a roic.ai item also says the headline did not state RMP explicitly and the NY Fed page still showed the prior schedule on 2026-10-14. 0B RMP carried as best available; NY Fed Treasury Securities Operational Details page not reachable.",
+  "prior_period": {
+    "operating_period": "2026-09-15 through 2026-10-14",
+    "reserve_management_purchases_planned_B": 0.0,
+    "reinvestment_purchases_planned_B": 15.6
+  },
+  "fomc_2026_10_28": {
+    "confirmed": false,
+    "balance_sheet_or_standing_repo_change": null,
+    "status": "No post-meeting coverage or implementation note found by WebSearch on 2026-10-30. FRED IORB stays at 3.90 through 2026-10-30, so no IORB change took effect; balance-sheet and standing-repo parameters are unconfirmed."
+  },
+  "sources": [
+    {"fact": "Reinvestment purchases about 14.6B for 2026-10-15..2026-11-13 (prev 15.6B)", "url": "https://www.newsquawk.com/headlines/ny-fed-desk-plans-to-conduct-c-usd-146bln-in-reinvestment-purchases-between-oct-15th-and-nov-13th", "source_date": "2026-10-14 (inferred from companion roic.ai item; headline undated in snippet)"},
+    {"fact": "NY Fed desk plans 14.6B reinvestment purchases Oct 15-Nov 13", "url": "https://www.roic.ai/news/ny-fed-desk-plans-146b-in-treasury-reinvestment-purchases-oct-15nov-13-10-14-2026", "source_date": "2026-10-14"},
+    {"fact": "Fed pauses reserve-management purchases for third straight month; markets expect resumption mid-November", "url": "https://www.roic.ai/news/fed-pauses-reserve-management-purchases-for-third-straight-month-10-14-2026", "source_date": "2026-10-14"},
+    {"fact": "Prior period 2026-09-15..2026-10-14: 0B RMP, about 15.6B reinvestment", "url": "https://www.thestar.com.my/business/business-news/2026/09/16/fed-extends-pause-on-reserve-management-purchases-to-october", "source_date": "2026-09-16"},
+    {"fact": "Authoritative schedule page (not reachable from this environment)", "url": "https://newyorkfed.org/markets/domestic-market-operations/monetary-policy-implementation/treasury-securities/treasury-securities-operational-details", "source_date": "N/A"},
+    {"fact": "October FOMC meeting 2026-10-27..28, statement 2026-10-28 2:00 p.m. ET (preview only; outcome not found)", "url": "https://www.babypips.com/analysis/event-guide-forex-us-fomc-statement-october-2026-10-27", "source_date": "2026-10-27"}
+  ]
+}

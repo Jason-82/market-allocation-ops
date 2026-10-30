@@ -17,7 +17,62 @@ or recompute a module's official score. Independent market-data checks may verif
 citations, flag stale inputs, or flag inconsistencies — they never overwrite an agent's score
 without an explicit methodology change approved by Jason.
 
+### Agent of record since 2026-10-30: the Supervisor's own module tools
+
+On 2026-10-30 Jason asked the Supervisor to run the modules itself ("it would be much easier
+going forward if you could simply run them all yourself"). The five module tools are now the agent
+of record. This changes **who** runs the committed specs, not the methodology:
+
+| Module | Tool | Spec |
+|---|---|---|
+| Quant | `tools/quant_risk.py` | `supervisor/modules/quant_risk.yaml` |
+| Macro | `tools/macro_policy.py` | `supervisor/modules/macro_policy.yaml` |
+| Liquidity | `tools/liquidity_credit.py` | `supervisor/modules/liquidity_credit.yaml` |
+| Sentiment | `tools/sentiment_technicals.py` | `supervisor/modules/sentiment_technicals.yaml` |
+| Valuation | `tools/valuation_expected_returns.py` | `supervisor/modules/valuation_expected_returns.yaml` |
+
+Mode A still holds: the tool's published score is official. Never hand-adjust it. Any change to
+an anchor, a weight or an established convention (for example Liquidity's ICE-truncation −2) is a
+methodology change and needs Jason's approval. Each run must:
+
+1. Run every tool's `--self-test`. Each one reproduces the last external-agent packet within its
+   documented tolerance. Do not loosen a tolerance to make a run pass.
+2. Verify each module independently: a blind re-implementation from the spec plus an adversarial
+   audit. Report every disagreement.
+3. Disclose rounding edges. A score within about 0.5 of a rounding boundary, and any single input
+   that would flip the DCA multiplier, must be stated in the report.
+
+Data sources and their traps:
+
+- **FRED** (`fred.stlouisfed.org/graph/fredgraph.csv`) is the primary source for rates, credit,
+  H.4.1, VIX (`VIXCLS`) and VIX3M (`VXVCLS`). It serves current vintages only and ignores
+  `vintage_date`. History for the ICE OAS series is truncated to about 3 years. FRED prints VIX
+  on some equity holidays; count sessions on the equity calendar.
+- **Robinhood connector**: use only the read-only quote and historicals tools. Its daily VIX
+  index bars **can be misdated**: the bar labelled 2026-10-21 held the 10-22 close. Always
+  cross-check VIX against FRED `VIXCLS`, and score from FRED. The latest daily bar is often an
+  interpolated placeholder. Use `get_equity_quotes` for the official close, and never score from
+  an interpolated bar.
+- **Multpl, SSGA**: Valuation inputs. Multpl's embedded price runs about 0.8% above the official
+  close; apply the spec's k-adjustment.
+- **Blocked** (report it, never route around it): bls.gov, bea.gov, federalreserve.gov,
+  newyorkfed.org, schwab.com, Invesco, FactSet, S&P DJI, Research Affiliates, Vanguard. Facts
+  from these sites are secondary-sourced through WebSearch and carry the spec's confidence
+  deduction.
+- **Rebuilding inputs each run.** `--fetch DIR` refreshes the FRED and Multpl/SSGA caches for
+  Liquidity, Macro and Valuation. Quant and Sentiment read price CSVs (`date,low,high,close`, one
+  file per symbol: SPY QQQ IWM RSP XLY XLP SPHB SPLV SPX NDX VIX), built from the Robinhood daily
+  bars (split-adjusted, from 2025-09-02) with interpolated bars dropped. Web-sourced facts go in
+  a facts JSON with a source URL and date for each fact. The 2026-10-30 run's facts files and
+  packets are in `supervisor/runs/2026-10-30/` as templates.
+- **FRED has no 2025-10 CPI** (2025 shutdown). From the 2026-11-10 release (October 2026 CPI)
+  onward, core and headline CPI YoY need the official BLS figure supplied through the Macro
+  facts file.
+
 ## Intake protocol — this one matters most
+
+This protocol applies only when Jason pastes packets himself, for example from an external agent.
+When the Supervisor runs the modules itself, it runs them directly; there is no intake wait.
 
 Jason pastes five module packets, one at a time, in any order. Then he types `ALL DONE`.
 
@@ -92,3 +147,8 @@ Stdlib-only Python. Run `python3 tools/dca_calc.py --self-test` after touching t
 reconciles the recorded 2026-08-14 run *at its own $312,500 baseline* and current arithmetic at
 $250,000. Sleeve weights are duplicated in the self-test and must be updated with the spec. Do not "fix" the historical constant to the current value. If a spec value changes in `master_handoff.yaml`,
 update `tools/dca_calc.py` in the same commit — the weights and baseline are duplicated there.
+
+The five module tools are stdlib-only too, and each carries its own `--self-test` gate. If a
+module spec in `supervisor/modules/*.yaml` changes, update its tool in the same commit and re-run
+that self-test. Raw downloads (FRED CSVs, Multpl/SSGA HTML, price caches) are working data and
+belong in the session scratchpad, not the repo.
