@@ -1,6 +1,6 @@
 # CONTINUITY SNAPSHOT — Market Allocation Ops
 #
-# Latest run: 2026-10-30 report (module closes 2026-10-28/29), first Supervisor self-run.
+# Latest run: 2026-11-05 report (module closes 2026-11-04), second Supervisor self-run.
 # STATUS: This is a continuity snapshot, not a substitute for a fresh run.
 # Do NOT describe these figures as current after their stated as-of dates.
 # Their only sanctioned uses are:
@@ -80,6 +80,61 @@ latest_user_supplied_state:
         market_cap_to_GDP: "240.04%"
 
   latest_supervisor_result:
+    asof: "2026-11-05 report date (official module closes 2026-11-04; session of 2026-11-05 open at run time)"
+    run_type: "Second Supervisor self-run. Run during a sharp intraday selloff on 2026-11-05."
+    module_asof_dates:
+      QuantRisk: "2026-11-04 close"
+      MacroPolicy: "2026-11-03 Treasury close (FRED H.15 for 11-04 not yet posted); labor/CPI/PCE ref 2026-09; GDP 2026-Q3 advance"
+      LiquidityCredit: "2026-11-04 close (credit/VIX); BAA10Y 11-03; H.4.1 week ending 10-28; NFCI/STLFSI4 week ending 10-30"
+      SentimentTechnicals: "2026-11-04 close (VIX/VIX3M from FRED)"
+      ValuationExpectedReturns: "2026-11-04 close (10Y from 2026-11-03)"
+    module_scores: {QuantRisk: 97, MacroPolicy: 45, LiquidityCredit: 25, SentimentTechnicals: 54, ValuationExpectedReturns: 88}
+    module_confidences: {QuantRisk: 82, MacroPolicy: 80, LiquidityCredit: 88, SentimentTechnicals: 87, ValuationExpectedReturns: 73}
+    unrounded_module_scores: {QuantRisk: 96.6148, MacroPolicy: 44.5394, LiquidityCredit: 24.8128, SentimentTechnicals: 54.4542, ValuationExpectedReturns: 88.2220}
+    verification: "All five confirmed by blind re-implementation and adversarial audit, except one Valuation dispute: the blind build gets 87 via a historical-10Y alignment ambiguity (Jan-2009 ERP observation; FRED January mean vs Multpl's rounded row). Tool convention (FRED January mean, established 2026-10-30) retained."
+    overall_risk_score: 67.0
+    weighted_confidence: 82.4
+    regime: "Slow DCA"
+    raw_multiplier: 0.662500
+    operational_multiplier: 0.65
+    effective_multiplier_individual_5_69: 0.6204
+    weekly_baseline: 205000
+    amount_deployed: 133250
+    incremental_holdback: 71750
+    core_amount: 106600
+    sleeve_amount: 26650
+    reserve_release: false
+    reserve_release_reason: "No Quant de-extension trigger fired. QQQ is below r0.9 but its risk_smooth (0.928) is not under 0.90, and SPY is 5.4% above r0.9. Credit is widening but not confirming (HY 3.32%, no watch flag)."
+    sleeve_orders_if_no_sleeve_buys_since_2026_08_24:
+      basis: "2026-08-24 holdings scaled to 2026-11-04 official closes (QUAL 4:1 split effective 2026-11-05; 11-04 basis is pre-split on both ends)"
+      holdings: {QQQM: 22303.79, QUAL: 12245.11, DFAC: 15400.99, DUHP: 14332.51, SPMO: 3576.90, DISV: 45267.66, DFIV: 36368.40, DFEV: 25739.19}
+      orders: {QQQM: 16049.97, QUAL: 5514.24, SPMO: 4524.30, DUHP: 561.49, DFAC: 0, DISV: 0, DFIV: 0, DFEV: 0}
+    ledger_open_question: "Not yet confirmed whether Jason sent the 133,250 recommended for 2026-11-03. Deployable cash 5,922,472.69 assumes nothing sent since 2026-09-17."
+    prior_overall_comparison:
+      prior_asof: "2026-10-30 report (closes 2026-10-28)"
+      prior_score: 66.3
+      change: 0.7
+      classification: "Essentially unchanged"
+      attribution: "Liquidity +1.0 (20 -> 25), Sentiment -0.3 (57 -> 54). Quant, Macro, Valuation unchanged."
+    MULTIPLIER_EDGE: |
+      0.65x holds for overall in (66.0, 70.0); 67.0 is 1.0 above the 0.70x line. No single module
+      alternative flips it. Combinations do: Liquidity 22 (see LIQUIDITY_CONVENTION) together with
+      Quant 96, or with Macro 44 and Valuation 86, gives 66.0 -> 0.70x. Pending data: FRED 2026-11-04
+      yields (likely Macro 44, Valuation 86), the 2026-11-05 close (Quant composite 0.11 above the
+      96.5 edge), and the 2026-11-06 jobs report (Macro 42-48 range).
+    LIQUIDITY_CONVENTION: |
+      The +5 HY 20-day trend overlay (score 25, not 22) exists because the 2026-10-30 self-run counts
+      ICE OAS sessions on the SIFMA bond calendar (drops the 2026-10-12 Columbus Day print). Counting
+      FRED's own prints gives HY +23bp, overlay 0, score 22. That convention was introduced as an
+      implementation change without Jason's explicit approval; raised for ratification 2026-11-05.
+    PROVISIONAL_INTRADAY_SCENARIO_2026_11_05: |
+      If 2026-11-05 had closed at the ~10:32 CT snapshot (SPY 744.35 -2.93%, QQQ 659.90 -4.63%,
+      VIX 22.93): Quant 96 (composite 0.9643), Sentiment 50, Valuation 86, Liquidity ~28
+      (illustrative; VIX capped by anti-duplication), Macro 45 -> overall ~66.6, still 0.65x. QQQ
+      13.1% below its 2026-10-06 close high (759.66), 7.9% below r0.9 (716.10), 2.6% above r0.8
+      (643.37). Never official.
+
+  superseded_2026_10_30_result:
     asof: "2026-10-30 report date"
     run_type: "FIRST SUPERVISOR SELF-RUN. Jason asked on 2026-10-30 for the Supervisor to run the modules itself."
     agent_of_record: "tools/quant_risk.py, macro_policy.py, liquidity_credit.py, sentiment_technicals.py, valuation_expected_returns.py"

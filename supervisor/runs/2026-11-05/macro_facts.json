@@ -1,0 +1,775 @@
+{
+ "_comment": "Web-sourced (secondary) inputs for tools/macro_policy.py. Primary hosts (federalreserve.gov, bls.gov, bea.gov) are blocked by policy; every fact here is from WebSearch result summaries and is SECONDARY-SOURCED. Release dates in 'catalysts' come from the FRED release calendar (fred.stlouisfed.org, times shown there in US Central; converted to ET here).  Updated 2026-11-05: new run 2026-11-04 (no new scored macro release since the 2026-10-28 run); catalyst dates re-checked against FRED release calendars on 2026-11-05.",
+ "collected": "2026-11-05",
+ "runs": {
+  "2026-10-28": {
+   "periods": {
+    "labor": "2026-09",
+    "cpi": "2026-09",
+    "pce": "2026-09",
+    "gdp": "2026-Q3"
+   },
+   "release_dates": {
+    "labor": "2026-10-02",
+    "cpi": "2026-10-14",
+    "pce": "2026-10-29",
+    "gdp": "2026-10-29"
+   },
+   "fed": {
+    "decision_date": "2026-10-28",
+    "lower": 3.75,
+    "upper": 4.0,
+    "action": "hawkish_hold",
+    "action_basis": "Hold at 3.75-4.00 after the 2026-09-16 hike; two voters preferred a 25bp hike; statement: inflation 'remains elevated', activity upgraded to 'expanding at a strong pace', Committee awaiting 'accumulation of more information'.",
+    "voters": 12,
+    "hike_dissents": 2,
+    "cut_dissents": 0,
+    "dissenters": "Governor Lisa Cook and Cleveland Fed President Beth Hammack, each preferring a 25bp hike",
+    "vote_text": "10-2 hold",
+    "guidance": "hawkish_or_higher_for_longer",
+    "guidance_basis": "Spec guidance_classification.hawkish: 'at least two voters prefer a hike' is met (2). Statement is data-dependent ('accumulation of more information'), not explicit likely tightening, so 75 not 90. October minutes not yet released, so no minutes adjustment.",
+    "minutes_adjustment": 0,
+    "sources": [
+     {
+      "url": "https://www.cnbc.com/2026/10/28/fed-interest-rate-decision-october-2026.html",
+      "date": "2026-10-28"
+     },
+     {
+      "url": "https://finance.yahoo.com/economy/policy/live/fed-meeting-live-updates-interest-rates-held-steady-in-split-vote-warsh-says-politics-played-no-role-ahead-of-midterm-elections-191946928.html",
+      "date": "2026-10-28"
+     },
+     {
+      "url": "https://money.usnews.com/investing/news/articles/2026-10-28/fomc-holds-rates-steady-markets-mostly-follow-suit",
+      "date": "2026-10-28"
+     },
+     {
+      "url": "https://www.foxbusiness.com/economy/federal-reserve-interest-rate-decision-october-28-2026",
+      "date": "2026-10-28"
+     }
+    ],
+    "guidance_statement": "balanced_data_dependent",
+    "guidance_statement_basis": "Statement-only reading from guidance_basis: data-dependent ('accumulation of more information'), no stated tightening bias; the hawkish classification comes from the spec's 'at least two voters prefer a hike' rule, applied in code.",
+    "minutes_released": false
+   },
+   "sep": {
+    "latest_sep_date": "2026-09-16",
+    "current_year_median": 4.1,
+    "prior_sep_date": "2026-06-17",
+    "prior_current_year_median": 3.8,
+    "long_run_median": 3.2,
+    "prior_long_run_median": 3.1,
+    "note": "No SEP at the 2026-10-27/28 meeting; latest SEP (September) versus immediately prior SEP (June) is carried per history_windows.fed_policy.sep.",
+    "sources": [
+     {
+      "url": "https://federalreserve.gov/monetarypolicy/fomcprojtabl20260916.htm",
+      "date": "2026-09-16",
+      "note": "primary page surfaced by search only as fragments; not fetched (host blocked)"
+     },
+     {
+      "url": "https://cryptobriefing.com/fed-fomc-september-economic-projections-rate-hike/",
+      "date": "2026-09-16"
+     },
+     {
+      "url": "https://investinglive.com/central-banks/fed-dot-plot-signals-another-2026-rate-hike-as-growth-strengthens-and-inflation-remains-elevated/",
+      "date": "2026-09-16"
+     }
+    ]
+   },
+   "payroll_revision": {
+    "value_k": -60,
+    "reported": "2026-10-02",
+    "detail": "July revised -31 (+21 to -10), August -29 (+162 to +133); combined 60,000 lower than previously reported",
+    "sources": [
+     {
+      "url": "https://www.fxstreet.com/analysis/the-29k-jobs-number-isnt-the-real-story-the-downward-revisions-show-the-labor-market-turned-months-ago-202610021811",
+      "date": "2026-10-02"
+     },
+     {
+      "url": "https://www.foxbusiness.com/economy/us-jobs-report-september-2026",
+      "date": "2026-10-02"
+     },
+     {
+      "url": "https://tradingeconomics.com/united-states/non-farm-payrolls/news/589161",
+      "date": "2026-10-02"
+     }
+    ],
+    "fred_crosscheck": "PAYEMS current vintage: Jul -10, Aug +133, Sep +29 (matches release text)"
+   },
+   "gdp_vintage": {
+    "quarter": "2026-Q3",
+    "vintage": "advance",
+    "release_date": "2026-10-29",
+    "advance_real_gdp_saar": 3.4,
+    "basis": "BEA scheduled the Q3 advance estimate for 2026-10-29 (FRED release calendar rid=53; financecalendar.com); the second estimate is scheduled 2026-11-25. The Q3 observation present on FRED on 2026-10-30 can therefore only be the advance estimate. Headline value 3.4 taken from FRED A191RL1Q225SBEA; no news source quoting 3.4 was found by search.",
+    "sources": [
+     {
+      "url": "https://fred.stlouisfed.org/releases/calendar?rid=53",
+      "date": "2026-10-30"
+     },
+     {
+      "url": "https://www.financecalendar.com/event/us-gross-domestic-product-october-2026/",
+      "date": "2026-10"
+     }
+    ],
+    "headline_corroborated": false
+   },
+   "prior": {
+    "asof": "2026-09-16",
+    "score": 44,
+    "InflationRisk": 47.3,
+    "LaborRecessionRisk": 27.1,
+    "GrowthRisk": 27.2,
+    "RatesCurveRisk": 58.7,
+    "FedPolicyRisk": 69.1,
+    "confidence": 85
+   },
+   "release_dates_source": "the FRED release calendar",
+   "release_dates_primary_verified": false,
+   "cpi_yoy_override": {},
+   "core_cpi_yoy_override": {},
+   "_cpi_yoy_override_comment": "Official BLS 12-month % changes (NSA) for CPI months whose t-12 FRED level is blank (2025-10). Format {\"YYYY-MM\": {\"value\": x.x, \"source\": \"<BLS URL>\", \"date\": \"YYYY-MM-DD\"}}. October 2026 CPI (2026-11-10) needs both entries."
+  },
+  "2026-09-16": {
+   "_comment": "Validation reconstruction of the agent of record's 2026-09-16 packet (first run of the formula).",
+   "periods": {
+    "labor": "2026-08",
+    "cpi": "2026-08",
+    "pce": "2026-07",
+    "gdp": "2026-Q2"
+   },
+   "release_dates": {
+    "labor": "2026-09-04",
+    "cpi": "2026-09-11",
+    "pce": "2026-08-26",
+    "gdp": "2026-08-26"
+   },
+   "fed": {
+    "decision_date": "2026-09-16",
+    "lower": 3.75,
+    "upper": 4.0,
+    "action": "twenty_five_bp_hike",
+    "voters": 12,
+    "hike_dissents": 0,
+    "cut_dissents": 0,
+    "vote_text": "12-0 hike",
+    "guidance": "hawkish_or_higher_for_longer",
+    "guidance_basis": "Hike with September SEP median 4.1 for end-2026 versus a 3.875 midpoint, i.e. the dot plot signals another 2026 hike (investinglive.com 2026-09-16). Statement text not retrieved; classified hawkish (75), not explicit likely tightening (90). Consistent with the agent's published FedPolicyRisk 69.1 (back-solve gives 75.15).",
+    "minutes_adjustment": 0,
+    "sources": [
+     {
+      "url": "https://www.securities.io/fomc-raises-federal-funds-target-range-to-3-3-4-to-4-percent/",
+      "date": "2026-09-16"
+     },
+     {
+      "url": "https://investinglive.com/central-banks/fed-dot-plot-signals-another-2026-rate-hike-as-growth-strengthens-and-inflation-remains-elevated/",
+      "date": "2026-09-16"
+     }
+    ]
+   },
+   "sep": {
+    "latest_sep_date": "2026-09-16",
+    "current_year_median": 4.1,
+    "prior_sep_date": "2026-06-17",
+    "prior_current_year_median": 3.8,
+    "long_run_median": 3.2
+   },
+   "payroll_revision": {
+    "value_k": 55,
+    "reported": "2026-09-04",
+    "detail": "June revised +11 (+20 to +31), July +44 (-23 to +21); combined +55",
+    "sources": [
+     {
+      "url": "https://www.foxbusiness.com/economy/us-jobs-report-august-2026",
+      "date": "2026-09-04"
+     },
+     {
+      "url": "https://tradingeconomics.com/united-states/non-farm-payrolls/news/581282",
+      "date": "2026-09-04"
+     }
+    ]
+   },
+   "gdp_vintage": {
+    "quarter": "2026-Q2",
+    "vintage": "second",
+    "release_date": "2026-08-26",
+    "advance_real_gdp_saar": 1.5,
+    "as_reported": {
+     "real_gdp_saar": 1.5,
+     "private_final_sales_saar": 4.2
+    },
+    "sources": [
+     {
+      "url": "https://bea.gov/news/2026/gdp-second-estimate-and-corporate-profits-2nd-quarter-2026",
+      "date": "2026-08-26",
+      "note": "surfaced by search; host blocked, not fetched"
+     },
+     {
+      "url": "https://seekingalpha.com/article/4929066-q2-gdp-advance-estimate-real-gdp-at-1-5-percent-lower-than-expected",
+      "date": "2026-07-30"
+     }
+    ]
+   },
+   "as_reported_payrolls_k": {
+    "2026-06": 31,
+    "2026-07": 21,
+    "2026-08": 162
+   },
+   "published": {
+    "InflationRisk": 47.3,
+    "LaborRecessionRisk": 27.1,
+    "GrowthRisk": 27.2,
+    "RatesCurveRisk": 58.7,
+    "FedPolicyRisk": 69.1,
+    "score": 44,
+    "DGS10": 5.01,
+    "DGS3MO": 4.14,
+    "DGS2": 4.74
+   },
+   "as_reported_pce": {
+    "CorePCE_YoY": 3.3,
+    "PCE_YoY": 3.7,
+    "CorePCE_mm": 0.2,
+    "CorePCE_3m_ann": 2.42
+   },
+   "as_reported_pce_sources": [
+    {
+     "url": "https://cryptobriefing.com/us-core-pce-rises-02-in-july-consumer-spending-stalls/",
+     "date": "2026-08-26",
+     "fact": "July 2026 core PCE +0.2% m/m, 3.3% y/y (as first published)"
+    },
+    {
+     "url": "https://www.foxbusiness.com/economy/july-2026-pce-inflation.amp",
+     "date": "2026-08-26",
+     "fact": "July 2026 PCE inflation (as first published)"
+    },
+    {
+     "url": "https://forexfundamentals.com/economic-calendar/us-pce/2026-08-26",
+     "date": "2026-08-26",
+     "fact": "July 2026 headline PCE 3.7% y/y (as first published)"
+    },
+    {
+     "url": "https://tradingeconomics.com/united-states/pce-price-index-monthly-change/news/588260",
+     "date": "2026-10-29",
+     "fact": "July revised down; August-vintage headline 3.4%, core 3.0%"
+    },
+    {
+     "url": "https://tradingeconomics.com/united-states/pce-price-index-monthly-change/news/578256",
+     "date": "2026-08-26",
+     "fact": "July core PCE +0.2% following +0.1% in June (as published 2026-08-26)"
+    },
+    {
+     "url": "https://tradingeconomics.com/united-states/pce-price-index-monthly-change/news/571258",
+     "date": "2026-07-30",
+     "fact": "June core PCE +0.1% following +0.3% in May; core YoY 3.3% from 3.4%"
+    }
+   ],
+   "as_reported_pce_note": "CorePCE_YoY 3.3 and PCE_YoY 3.7 are sourced as first published (2026-08-26). CorePCE_3m_ann 2.42 is DERIVED from the rounded first-published monthly core changes May +0.3, Jun +0.1, Jul +0.2 ((1.003*1.001*1.002)^4-1); 0.1pp rounding gives a band of about 1.8-3.0. Validation use only. April as-published core PCE YoY not found, so direction terms stay on the current vintage."
+  },
+  "2026-11-03": {
+   "periods": {
+    "labor": "2026-09",
+    "cpi": "2026-09",
+    "pce": "2026-09",
+    "gdp": "2026-Q3"
+   },
+   "release_dates": {
+    "labor": "2026-10-02",
+    "cpi": "2026-10-14",
+    "pce": "2026-10-29",
+    "gdp": "2026-10-29"
+   },
+   "fed": {
+    "decision_date": "2026-10-28",
+    "lower": 3.75,
+    "upper": 4.0,
+    "action": "hawkish_hold",
+    "action_basis": "Hold at 3.75-4.00 after the 2026-09-16 hike; two voters preferred a 25bp hike; statement: inflation 'remains elevated', activity upgraded to 'expanding at a strong pace', Committee awaiting 'accumulation of more information'.",
+    "voters": 12,
+    "hike_dissents": 2,
+    "cut_dissents": 0,
+    "dissenters": "Governor Lisa Cook and Cleveland Fed President Beth Hammack, each preferring a 25bp hike",
+    "vote_text": "10-2 hold",
+    "guidance": "hawkish_or_higher_for_longer",
+    "guidance_basis": "Spec guidance_classification.hawkish: 'at least two voters prefer a hike' is met (2). Statement is data-dependent ('accumulation of more information'), not explicit likely tightening, so 75 not 90. October minutes not yet released, so no minutes adjustment.",
+    "minutes_adjustment": 0,
+    "sources": [
+     {
+      "url": "https://www.cnbc.com/2026/10/28/fed-interest-rate-decision-october-2026.html",
+      "date": "2026-10-28"
+     },
+     {
+      "url": "https://finance.yahoo.com/economy/policy/live/fed-meeting-live-updates-interest-rates-held-steady-in-split-vote-warsh-says-politics-played-no-role-ahead-of-midterm-elections-191946928.html",
+      "date": "2026-10-28"
+     },
+     {
+      "url": "https://money.usnews.com/investing/news/articles/2026-10-28/fomc-holds-rates-steady-markets-mostly-follow-suit",
+      "date": "2026-10-28"
+     },
+     {
+      "url": "https://www.foxbusiness.com/economy/federal-reserve-interest-rate-decision-october-28-2026",
+      "date": "2026-10-28"
+     }
+    ],
+    "guidance_statement": "balanced_data_dependent",
+    "guidance_statement_basis": "Statement-only reading from guidance_basis: data-dependent ('accumulation of more information'), no stated tightening bias; the hawkish classification comes from the spec's 'at least two voters prefer a hike' rule, applied in code.",
+    "minutes_released": false,
+    "minutes_scheduled": {
+     "date": "2026-11-18",
+     "time_et": "14:00",
+     "confirmed": true,
+     "sources": [
+      {
+       "url": "https://www.federalreserve.gov/newsevents/2026-november.htm",
+       "date": "2026-11-05",
+       "note": "Fed calendar surfaced by WebSearch as a snippet; host blocked, not fetched"
+      },
+      {
+       "url": "https://fedratecalc.com/fomc-minutes-release-schedule/",
+       "date": "2026-11-05"
+      },
+      {
+       "url": "https://www.financecalendar.com/event/fomc-minutes-october-2026/",
+       "date": "2026-11-05"
+      }
+     ]
+    },
+    "intermeeting_action": {
+     "value": "none found 2026-10-29..2026-11-05",
+     "confirmed": false,
+     "basis": "WebSearch 2026-11-05; absence not primary-confirmed"
+    }
+   },
+   "sep": {
+    "latest_sep_date": "2026-09-16",
+    "current_year_median": 4.1,
+    "prior_sep_date": "2026-06-17",
+    "prior_current_year_median": 3.8,
+    "long_run_median": 3.2,
+    "prior_long_run_median": 3.1,
+    "note": "No SEP at the 2026-10-27/28 meeting; latest SEP (September) versus immediately prior SEP (June) is carried per history_windows.fed_policy.sep.",
+    "sources": [
+     {
+      "url": "https://federalreserve.gov/monetarypolicy/fomcprojtabl20260916.htm",
+      "date": "2026-09-16",
+      "note": "primary page surfaced by search only as fragments; not fetched (host blocked)"
+     },
+     {
+      "url": "https://cryptobriefing.com/fed-fomc-september-economic-projections-rate-hike/",
+      "date": "2026-09-16"
+     },
+     {
+      "url": "https://investinglive.com/central-banks/fed-dot-plot-signals-another-2026-rate-hike-as-growth-strengthens-and-inflation-remains-elevated/",
+      "date": "2026-09-16"
+     }
+    ]
+   },
+   "payroll_revision": {
+    "value_k": -60,
+    "reported": "2026-10-02",
+    "detail": "July revised -31 (+21 to -10), August -29 (+162 to +133); combined 60,000 lower than previously reported",
+    "sources": [
+     {
+      "url": "https://www.fxstreet.com/analysis/the-29k-jobs-number-isnt-the-real-story-the-downward-revisions-show-the-labor-market-turned-months-ago-202610021811",
+      "date": "2026-10-02"
+     },
+     {
+      "url": "https://www.foxbusiness.com/economy/us-jobs-report-september-2026",
+      "date": "2026-10-02"
+     },
+     {
+      "url": "https://tradingeconomics.com/united-states/non-farm-payrolls/news/589161",
+      "date": "2026-10-02"
+     }
+    ],
+    "fred_crosscheck": "PAYEMS current vintage: Jul -10, Aug +133, Sep +29 (matches release text)"
+   },
+   "gdp_vintage": {
+    "quarter": "2026-Q3",
+    "vintage": "advance",
+    "release_date": "2026-10-29",
+    "advance_real_gdp_saar": 3.4,
+    "basis": "BEA Q3 2026 advance estimate released 2026-10-29: real GDP +3.4% SAAR, real final sales to private domestic purchasers +4.9%, current-dollar GDP +5.6% (BEA release PDF re-hosted by poder360; Trading Economics reports 3.4% vs GDPNow 3.3% and consensus 3.2%). Matches FRED A191RL1Q225SBEA 3.4. Second estimate scheduled 2026-11-25.",
+    "sources": [
+     {
+      "url": "https://fred.stlouisfed.org/releases/calendar?rid=53",
+      "date": "2026-10-30"
+     },
+     {
+      "url": "https://www.financecalendar.com/event/us-gross-domestic-product-october-2026/",
+      "date": "2026-10"
+     },
+     {
+      "url": "https://static.poder360.com.br/uploads/2026/10/pib-eua-3-tri-2026-29-out.pdf",
+      "date": "2026-10-29",
+      "note": "copy of the BEA advance-estimate release; surfaced by WebSearch, not fetched"
+     },
+     {
+      "url": "https://tradingeconomics.com/united-states/gdpnow/news/596387",
+      "date": "2026-10-29"
+     },
+     {
+      "url": "https://californiaglobe.com/tag/current-dollar-gdp/",
+      "date": "2026-10-29"
+     }
+    ],
+    "headline_corroborated": true
+   },
+   "prior": {
+    "asof": "2026-10-28",
+    "score": 45,
+    "InflationRisk": 52.7,
+    "LaborRecessionRisk": 32.9,
+    "GrowthRisk": 14.1,
+    "RatesCurveRisk": 55.0,
+    "FedPolicyRisk": 67.6,
+    "confidence": 80,
+    "weighted": 44.548,
+    "source": "supervisor/runs/2026-10-30/packets.md Macro packet (published 2026-10-30)"
+   },
+   "release_dates_source": "the FRED release calendar",
+   "release_dates_primary_verified": false,
+   "cpi_yoy_override": {},
+   "core_cpi_yoy_override": {},
+   "_cpi_yoy_override_comment": "Official BLS 12-month % changes (NSA) for CPI months whose t-12 FRED level is blank (2025-10). Format {\"YYYY-MM\": {\"value\": x.x, \"source\": \"<BLS URL>\", \"date\": \"YYYY-MM-DD\"}}. October 2026 CPI (2026-11-10) needs both entries.",
+   "_comment": "Run as-of 2026-11-04 close. No CPI, PCE, Employment Situation or GDP release and no FOMC decision between 2026-10-29 and 2026-11-04, so periods, release dates, payroll revision, SEP and Fed decision facts carry from the 2026-10-28 run. Only the Treasury close, the GDP headline corroboration and the minutes date change.",
+   "fed_communications_since_decision": {
+    "_note": "Context only, NOT scored: the spec's guidance subscore uses the statement, press conference and minutes. Speeches by non-dissenting officials do not change guidance, votes or dissent counts. Secondary-sourced.",
+    "items": [
+     {
+      "date": "2026-10-30",
+      "speaker": "Dallas Fed President Lorie Logan (sided with the majority on 2026-10-28)",
+      "summary": "Prepared remarks at Davidson College: the FOMC needs 'at least two more' 25bp increases; a skipped meeting does not change the destination.",
+      "confirmed": true,
+      "sources": [
+       {
+        "url": "https://www.kitco.com/news/off-the-wire/2026-10-30/fed-needs-least-two-more-rate-hikes-logan-says",
+        "date": "2026-10-30"
+       },
+       {
+        "url": "https://investinglive.com/central-banks/fed-s-logan-at-least-two-more-quarter-point-rate-hikes-needed/",
+        "date": "2026-10-30"
+       },
+       {
+        "url": "https://www.bondbuyer.com/articles/feds-logan-says-more-rate-hikes-needed-to-slow-hot-inflation",
+        "date": "2026-10-30"
+       }
+      ]
+     },
+     {
+      "date": "2026-10-30",
+      "speaker": "St. Louis Fed President Alberto Musalem",
+      "summary": "Inflation too high and unlikely to ease without Fed action; additional firming needed 'soon'.",
+      "confirmed": true,
+      "sources": [
+       {
+        "url": "https://www.cnbc.com/2026/10/30/musalem-fed-monetary-policy-tightening.html",
+        "date": "2026-10-30"
+       },
+       {
+        "url": "https://political.org/2026/10/30/fed-officials-musalem-and-logan-signal-more-rate-hikes-are-coming-days-after-fed-holds-rates-steady/",
+        "date": "2026-10-30"
+       }
+      ]
+     },
+     {
+      "date": "2026-11-05",
+      "speaker": "Richmond Fed President Thomas Barkin",
+      "summary": "Expects further rate increases at a gradual pace; size and timing uncertain; inflation the main risk; policy around neutral.",
+      "confirmed": true,
+      "sources": [
+       {
+        "url": "https://cnbc.com/2026/11/05/barkin-sees-interest-rate-hikes-ahead-but-at-a-gradual-pace.html",
+        "date": "2026-11-05"
+       },
+       {
+        "url": "https://www.fxstreet.com/news/feds-barkin-backs-gradual-rate-hikes-as-inflation-stays-too-high-202611051548",
+        "date": "2026-11-05"
+       }
+      ]
+     },
+     {
+      "date": "2026-10-28..2026-11-05",
+      "speaker": "Chair Kevin Warsh; dissenters Cook and Hammack",
+      "summary": "No post-meeting remarks found signalling the December decision; no speech by Cook or Hammack found in the window.",
+      "confirmed": false,
+      "sources": [
+       {
+        "url": "https://finance.yahoo.com/economy/policy/articles/higher-rates-ahead-three-fed-204638753.html",
+        "date": "2026-10-30 (inferred)"
+       }
+      ]
+     }
+    ],
+    "market_pricing": {
+     "value": "December hike widely expected (one blog cites ~85% odds)",
+     "confirmed": false,
+     "sources": [
+      {
+       "url": "https://www.noradarealestate.com/blog/interest-rates-hike-odds-december-2026-jump-85-after-feds-recent-decision/",
+       "date": "2026-10 (undated in snippet)"
+      },
+      {
+       "url": "https://admiralmarkets.com/analytics/traders-blog/fomc-october-2026-fed-holds-rates",
+       "date": "2026-10-28"
+      }
+     ]
+    }
+   },
+   "data_released_since_prior_run": {
+    "window": "2026-10-29..2026-11-04",
+    "scored_releases": [],
+    "note": "None of the Macro spec's scored releases (Employment Situation, CPI, PCE, GDP) or an FOMC decision fell in the window: next are October jobs 2026-11-06, October CPI 2026-11-10, Q3 GDP second and October PCE 2026-11-25. Q3 GDP advance and September PCE (2026-10-29) were already in the 2026-10-28 run. Only the Treasury curve updates.",
+    "confirmed": true,
+    "sources": [
+     {
+      "url": "https://fred.stlouisfed.org/releases/calendar?rid=50",
+      "date": "2026-11-05"
+     },
+     {
+      "url": "https://fred.stlouisfed.org/releases/calendar?rid=10",
+      "date": "2026-11-05"
+     },
+     {
+      "url": "https://fred.stlouisfed.org/releases/calendar?rid=53",
+      "date": "2026-11-05"
+     },
+     {
+      "url": "https://fred.stlouisfed.org/releases/calendar?rid=54",
+      "date": "2026-11-05"
+     }
+    ]
+   },
+   "rates_availability_note": "At 2026-11-05 ~17:00Z FRED DGS10/DGS2/DGS3MO end 2026-11-03 (4.95/4.61/4.21); the 2026-11-04 H.15 values were not yet posted. Multpl shows the 10Y at 4.90% 'at market close Wed Nov 4, 2026' (-5bp), secondary.",
+   "rekey_note": "Re-keyed from runs['2026-11-04'] to '2026-11-03' on 2026-11-05: FRED DGS10/DGS2/DGS3MO end 2026-11-03 (re-checked 16:47Z); facts content unchanged."
+  }
+ },
+ "catalysts": [
+  {
+   "date": "2026-11-06",
+   "time_et": "08:30",
+   "event": "October 2026 Employment Situation",
+   "source": "https://fred.stlouisfed.org/releases/calendar?rid=50",
+   "checked": "2026-11-05",
+   "confirmed": true
+  },
+  {
+   "date": "2026-11-10",
+   "time_et": "08:30",
+   "event": "October 2026 CPI",
+   "source": "https://fred.stlouisfed.org/releases/calendar?rid=10",
+   "checked": "2026-11-05",
+   "confirmed": true
+  },
+  {
+   "date": "2026-11-13",
+   "time_et": "08:30",
+   "event": "October 2026 PPI",
+   "source": "https://fred.stlouisfed.org/releases/calendar?rid=46",
+   "checked": "2026-11-05",
+   "confirmed": true
+  },
+  {
+   "date": "2026-11-17",
+   "time_et": "08:30",
+   "event": "October 2026 Advance Retail Sales",
+   "source": "https://fred.stlouisfed.org/releases/calendar?rid=9",
+   "checked": "2026-11-05",
+   "confirmed": true
+  },
+  {
+   "date": "2026-11-18",
+   "time_et": "14:00",
+   "event": "Minutes of the 2026-10-27/28 Federal Open Market Committee meeting",
+   "source": "https://www.federalreserve.gov/newsevents/2026-november.htm",
+   "secondary_sources": [
+    "https://fedratecalc.com/fomc-minutes-release-schedule/",
+    "https://www.financecalendar.com/event/fomc-minutes-october-2026/"
+   ],
+   "checked": "2026-11-05",
+   "confirmed": true,
+   "note": "Fed calendar surfaced by WebSearch only (host blocked); event name avoids the word 'FOMC' so the tool's FOMC-decision lookup keeps pointing at 2026-12-09"
+  },
+  {
+   "date": "2026-11-25",
+   "time_et": "08:30",
+   "event": "Q3 2026 GDP second estimate",
+   "source": "https://fred.stlouisfed.org/releases/calendar?rid=53",
+   "checked": "2026-11-05",
+   "confirmed": true
+  },
+  {
+   "date": "2026-11-25",
+   "time_et": "08:30",
+   "event": "October 2026 Personal Income and Outlays (PCE)",
+   "source": "https://fred.stlouisfed.org/releases/calendar?rid=54",
+   "checked": "2026-11-05",
+   "confirmed": true
+  },
+  {
+   "date": "2026-12-04",
+   "time_et": "08:30",
+   "event": "November 2026 Employment Situation",
+   "source": "https://fred.stlouisfed.org/releases/calendar?rid=50",
+   "checked": "2026-11-05",
+   "confirmed": true
+  },
+  {
+   "date": "2026-12-09",
+   "time_et": "14:00",
+   "event": "FOMC decision with SEP (meeting 2026-12-08/09)",
+   "source": "https://fedratecalc.com/fomc-meeting-schedule/december-2026/",
+   "secondary_sources": [
+    "https://thriveinmarkets.com/es/calendar/indicator/fomc/"
+   ],
+   "checked": "2026-11-05",
+   "confirmed": true
+  },
+  {
+   "date": "2026-12-10",
+   "time_et": "08:30",
+   "event": "November 2026 CPI",
+   "source": "https://fred.stlouisfed.org/releases/calendar?rid=10",
+   "checked": "2026-11-05",
+   "confirmed": true
+  },
+  {
+   "date": "2026-12-15",
+   "time_et": "08:30",
+   "event": "November 2026 PPI",
+   "source": "https://fred.stlouisfed.org/releases/calendar?rid=46",
+   "checked": "2026-11-05",
+   "confirmed": true
+  },
+  {
+   "date": "2026-12-16",
+   "time_et": "08:30",
+   "event": "November 2026 Advance Retail Sales",
+   "source": "https://fred.stlouisfed.org/releases/calendar?rid=9",
+   "checked": "2026-11-05",
+   "confirmed": true
+  },
+  {
+   "date": "2026-12-23",
+   "time_et": "08:30",
+   "event": "Q3 2026 GDP third estimate and November 2026 PCE",
+   "source": "https://fred.stlouisfed.org/releases/calendar?rid=53",
+   "checked": "2026-11-05",
+   "confirmed": true
+  }
+ ],
+ "catalysts_not_confirmed": [],
+ "primary_hosts_unreachable": [
+  "federalreserve.gov",
+  "bls.gov",
+  "bea.gov"
+ ],
+ "known_data_gaps": {
+  "2025-10": {
+   "series": [
+    "CPIAUCNS",
+    "CPILFENS",
+    "CPILFESL",
+    "CPIAUCSL"
+   ],
+   "cause": "2025 federal government shutdown release disruption",
+   "source": "Supervisor workflow instruction 2026-10-30; FRED cache shows the blank rows"
+  }
+ },
+ "catalysts_note": "FRED calendars list times in US Central (07:30 CT = 08:30 ET). FRED notes that release dates are published by the data sources; not verified at BLS/BEA/Fed (hosts blocked).",
+ "market_context_narrative_only": {
+  "_note": "For the Supervisor's narrative only. NOT a scored input to any module (spec: do not raise MacroRisk because SPY or QQQ fell). Secondary news; intraday figures differ by capture time.",
+  "events": [
+   {
+    "date": "2026-10-30",
+    "summary": "Tech-led selloff: S&P 500 -1.8% to 7,580.07, Nasdaq Composite about -2.9%. Drivers cited: rare earnings misses at Amazon and Alphabet plus Intel and ServiceNow disappointments, renewed doubt about Big Tech AI spending, rotation into defensives and energy. Same day Logan and Musalem called for more hikes.",
+    "corroboration": "S&P 500 close 7,580.07 matches FRED SP500 and the Robinhood SPX bar for 2026-10-30",
+    "confirmed": true,
+    "sources": [
+     {
+      "url": "https://stockmarketwatch.com/digest/2026-10-30",
+      "date": "2026-10-30"
+     },
+     {
+      "url": "https://biztoc.com/x/cb29d494f8bd2b85",
+      "date": "2026-10-30"
+     },
+     {
+      "url": "https://coincentral.com/?p=216114",
+      "date": "2026-10-30"
+     },
+     {
+      "url": "https://www.wealthprofessional.ca/investments/equity-markets/nasdaq-tech-sell-off-october-2026/393915",
+      "date": "2026-10-30"
+     }
+    ]
+   },
+   {
+    "date": "2026-11-03",
+    "summary": "US midterm Election Day; S&P 500 snapped a 3-day losing streak as chip stocks rebounded (close 7,568.92).",
+    "confirmed": true,
+    "sources": [
+     {
+      "url": "https://www.cnbc.com/2026/11/02/stock-market-today-live-updates.html",
+      "date": "2026-11-03"
+     },
+     {
+      "url": "https://www.khaleejtimes.com/americas/us-midterm-elections-2026-voting-explainer",
+      "date": "2026-11"
+     }
+    ]
+   },
+   {
+    "date": "2026-11-04",
+    "summary": "Post-election rally: S&P 500 +1.6% to 7,688.62 (Robinhood SPX bar, not interpolated). Several reports describe the midterm outcome as a Democratic sweep; the election outcome itself was not confirmed by an election-results source in this search.",
+    "confirmed": false,
+    "sources": [
+     {
+      "url": "https://www.investing.com/news/stock-market-news/us-stock-index-futures-steady-after-midterms-rally-5001919",
+      "date": "2026-11-05"
+     },
+     {
+      "url": "https://leprivatebanker.com/2026/11/05/nasdaq-100-sinks-about-6-as-chip-rout-deepens-putting-nasdaq-on-course-for-a-correction-after-democratic-sweep/",
+      "date": "2026-11-05"
+     }
+    ]
+   },
+   {
+    "date": "2026-11-05",
+    "summary": "Intraday (session open) chip/AI rout: Nasdaq Composite about -3.6% to -4.2% by late morning ET, trading more than 10% below its October record (correction territory; second correction of 2026 if confirmed at the close); S&P 500 about -2% to -2.9%; Dow down more than 1,000 points at one point. Philadelphia Semiconductor Index down more than 11% at one point; Qualcomm -9% to -11% on a weak outlook; AMD about -12% despite record results; Nvidia about -6% to -7%; CoreWeave lower. Drivers cited: AI capex and return worries, heightened scrutiny of data-center expansion and possible AI regulation after the midterms, higher borrowing costs. Figures are intraday, not closes.",
+    "confirmed": true,
+    "sources": [
+     {
+      "url": "https://www.cnbc.com/2026/11/04/stock-market-today-live-updates.html",
+      "date": "2026-11-05",
+      "note": "CNBC live blog; URL dated the evening before"
+     },
+     {
+      "url": "https://www.investing.com/news/stock-market-news/sp-500-futures-steady-after-midterm-rally-nasdaq-lags-on-chip-weakness-5003237",
+      "date": "2026-11-05",
+      "note": "Reuters via Investing.com"
+     },
+     {
+      "url": "https://gvwire.com/2026/11/05/wall-street-slumps-as-sharp-tech-losses-put-nasdaq-on-course-for-correction/",
+      "date": "2026-11-05"
+     },
+     {
+      "url": "https://www.marketscreener.com/news/nasdaq-set-for-correction-as-investors-reassess-ai-spending-boom-ce785fdcd088f42d",
+      "date": "2026-11-05"
+     },
+     {
+      "url": "https://finance.yahoo.com/markets/live/stock-market-today-thursday-november-5-dow-sp-500-nasdaq-oil-rises-chip-stocks-141439950.html",
+      "date": "2026-11-05"
+     },
+     {
+      "url": "https://upstox.com/news/market-news/us-stocks/wall-street-tumbles-as-tech-and-chip-stocks-plunge-amd-nvidia-intel-alphabet-space-x-extend-losses-up-to-12/article-203083/",
+      "date": "2026-11-05"
+     },
+     {
+      "url": "https://coinpaper.com/38397/md-stock-crashes-13-as-nvidia-falls-6-erasing-wall-street-s-post-election-rally",
+      "date": "2026-11-05"
+     }
+    ]
+   }
+  ]
+ }
+}

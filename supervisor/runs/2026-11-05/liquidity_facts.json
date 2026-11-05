@@ -1,0 +1,91 @@
+{
+ "retrieved": "2026-11-05",
+ "retrieval_method": "WebSearch result snippets only (federalreserve.gov / newyorkfed.org blocked by policy; WebFetch of news hosts also unavailable from this session); FRED for IORB and ON RRP award rate. Secondary-sourced",
+ "operating_period": "2026-10-15 through 2026-11-13",
+ "reserve_management_purchases_planned_B": 0.0,
+ "reinvestment_purchases_planned_B": 14.6,
+ "active_qt": false,
+ "schedule_confirmed_primary": false,
+ "schedule_status": "Secondary only and partly conflicting, unchanged since 2026-10-30: Newsquawk headline reports c. USD 14.6bln reinvestment for 2026-10-15..2026-11-13 (prev 15.6bln); roic.ai (2026-10-14) reports RMP paused for a third straight month, but a roic.ai item also says the headline did not state RMP explicitly. WebSearch on 2026-11-05 found no revision to this schedule and no announcement yet of the next monthly schedule (current period ends 2026-11-13). 0B RMP carried as best available; NY Fed Treasury Securities Operational Details page not reachable.",
+ "prior_period": {
+  "operating_period": "2026-09-15 through 2026-10-14",
+  "reserve_management_purchases_planned_B": 0.0,
+  "reinvestment_purchases_planned_B": 15.6
+ },
+ "fomc_2026_10_28": {
+  "confirmed": false,
+  "balance_sheet_or_standing_repo_change": "none found",
+  "implementation_note_found": true,
+  "iorb_pct": 3.9,
+  "iorb_effective": "2026-10-29",
+  "standing_repo_rate_pct": 4.0,
+  "on_rrp_rate_pct": 3.75,
+  "on_rrp_per_counterparty_limit_B": 160,
+  "status": "Implementation note issued 2026-10-28 located by WebSearch (federalreserve.gov monetary20261028a1, snippet only; host blocked): IORB maintained at 3.90% effective 2026-10-29, standing overnight repo at 4.0%, ON RRP at 3.75% with a 160B per-counterparty limit. Rates corroborated by FRED IORB 3.90 through 2026-11-05 and RRPONTSYAWARD 3.75 through 2026-11-04. The Desk's balance-sheet (reinvestment/RMP) directive text was not retrieved, so the balance-sheet parameters remain unconfirmed."
+ },
+ "sources": [
+  {
+   "fact": "Reinvestment purchases about 14.6B for 2026-10-15..2026-11-13 (prev 15.6B)",
+   "url": "https://www.newsquawk.com/headlines/ny-fed-desk-plans-to-conduct-c-usd-146bln-in-reinvestment-purchases-between-oct-15th-and-nov-13th",
+   "source_date": "2026-10-14 (inferred from companion roic.ai item; headline undated in snippet)"
+  },
+  {
+   "fact": "NY Fed desk plans 14.6B reinvestment purchases Oct 15-Nov 13",
+   "url": "https://www.roic.ai/news/ny-fed-desk-plans-146b-in-treasury-reinvestment-purchases-oct-15nov-13-10-14-2026",
+   "source_date": "2026-10-14"
+  },
+  {
+   "fact": "Fed pauses reserve-management purchases for third straight month; markets expect resumption mid-November",
+   "url": "https://www.roic.ai/news/fed-pauses-reserve-management-purchases-for-third-straight-month-10-14-2026",
+   "source_date": "2026-10-14"
+  },
+  {
+   "fact": "Prior period 2026-09-15..2026-10-14: 0B RMP, about 15.6B reinvestment",
+   "url": "https://www.thestar.com.my/business/business-news/2026/09/16/fed-extends-pause-on-reserve-management-purchases-to-october",
+   "source_date": "2026-09-16"
+  },
+  {
+   "fact": "Authoritative schedule page (not reachable from this environment)",
+   "url": "https://newyorkfed.org/markets/domestic-market-operations/monetary-policy-implementation/treasury-securities/treasury-securities-operational-details",
+   "source_date": "N/A"
+  },
+  {
+   "fact": "October FOMC meeting 2026-10-27..28, statement 2026-10-28 2:00 p.m. ET (preview only; outcome not found)",
+   "url": "https://www.babypips.com/analysis/event-guide-forex-us-fomc-statement-october-2026-10-27",
+   "source_date": "2026-10-27"
+  },
+  {
+   "fact": "Implementation note 2026-10-28: IORB 3.90% effective 2026-10-29; standing repo 4.0%; ON RRP 3.75%, 160B per-counterparty limit",
+   "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a1.htm",
+   "source_date": "2026-10-28",
+   "note": "surfaced by WebSearch 2026-11-05 as snippets only; host blocked, not fetched"
+  },
+  {
+   "fact": "IORB 3.90 through 2026-11-05 (FRED IORB)",
+   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=IORB",
+   "source_date": "2026-11-05"
+  },
+  {
+   "fact": "ON RRP award rate 3.75 2026-10-28..2026-11-04 (FRED RRPONTSYAWARD)",
+   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=RRPONTSYAWARD",
+   "source_date": "2026-11-05"
+  },
+  {
+   "fact": "No revision to the 2026-10-15..11-13 schedule found; resumption of RMP still only a market expectation",
+   "url": "https://www.roic.ai/news/fed-pauses-reserve-management-purchases-for-third-straight-month-10-14-2026",
+   "source_date": "2026-10-14 (re-surfaced by WebSearch 2026-11-05; no newer item found)"
+  }
+ ],
+ "report_date": "2026-11-05",
+ "schedule_recheck": {
+  "date": "2026-11-05",
+  "result": "no change found; next-period schedule not yet announced",
+  "confirmed": false
+ },
+ "intermeeting_actions_2026_10_29_to_2026_11_05": {
+  "value": "none found",
+  "confirmed": false,
+  "basis": "WebSearch 2026-11-05 found no intermeeting FOMC action, statement or facility change; absence is not primary-confirmed."
+ },
+ "h41_note": "FRED WRESBAL latest is week ending 2026-10-28; the H.4.1 for the week ending 2026-11-04 is published 2026-11-05 after the 16:30 ET release and was not in the cache at retrieval."
+}
