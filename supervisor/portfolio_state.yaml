@@ -71,6 +71,32 @@ tax_event_2026_09_18:
       80/20 is the neutral choice until the DEMSX scope question is settled. That question is
       now blocking an operational decision, not just an analytical one.
 
+LEDGER_2026_11_17:
+  reported_by: "Jason, 2026-11-17 ('completed the buys just now', about 11:40 CT)"
+  no_contributions_between: "2026-09-18 and 2026-11-16 (confirmed by Jason 2026-11-17; nothing on 2026-11-03)"
+  contribution:
+    date: "2026-11-17"
+    source_report: "Supervisor run 2026-11-17 (Q95 M44 L21 S45 V88, overall 64.3, 0.70x)"
+    total: 143500
+    core_to_robo: 114800
+    core_destination: "Recommended Jason Individual (5.69% robo cash); destination NOT confirmed"
+    manual_sleeve: 28700
+    sleeve_orders: {QQQM: 17282.07, QUAL: 5878.76, SPMO: 4786.58, DUHP: 729.89, DFEV: 22.70, DFAC: 0, DISV: 0, DFIV: 0}
+    status: |
+      Jason reported the buys complete. The amounts above are the RECOMMENDED orders, not
+      confirmed fills: share counts, fill prices, the robo destination account and whether the
+      $22.70 DFEV line was placed or rolled into QQQM were not supplied. This is the first sleeve
+      contribution since 2026-08-24 and the first execution of the full 80/20 split.
+  deployable_cash_after: 5778972.69
+  deployable_cash_basis: "5,922,472.69 (2026-09-18 confirmed ledger) less 143,500"
+  tax_reserve: "1,000,000 earmarked; last confirmed unpaid 2026-10-30, not reconfirmed 2026-11-17"
+  weekly_baseline: 205000
+  sleeve_estimate_after_buys:
+    basis: "2026-08-24 holdings scaled to 2026-11-16 official closes (QUAL post-split close x4), plus the 2026-11-17 order dollars at cost. An estimate, not a statement."
+    total: 197973.04
+    positions: {QQQM: 38612.82, QUAL: 17779.74, DFAC: 14910.29, DUHP: 14597.49, SPMO: 8255.92, DISV: 43581.77, DFIV: 35496.17, DFEV: 24738.84}
+    deviation_from_hybrid_targets_pp: 9.95
+
 deployment_horizon:
   weekly_baseline: 215000
   superseded_baseline_2026_08_24: 250000

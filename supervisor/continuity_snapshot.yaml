@@ -106,6 +106,7 @@ latest_user_supplied_state:
     reserve_release: false
     reserve_release_reason: "No Quant de-extension trigger fired at the 11-16 close. SPY 739.95 is +1.29% above r0.9 730.55 with smooth 0.982; QQQ is below r0.9 but smooth 0.912 (not < 0.90). At flat prices the composite falls below 0.95 on 11-19 and QQQ smooth below 0.90 in ~6 sessions."
     ledger_confirmed_2026_11_17: "Jason: no contributions since 2026-09-17 (none on 11-03 or after). Deployable cash 5,922,472.69; tax reserve assumed still earmarked (last confirmed unpaid 2026-10-30)."
+    executed: "Jason reported the recommended buys complete on 2026-11-17 (~11:40 CT): 143,500 = core 114,800 + sleeve 28,700 per the orders below. Fills and robo destination not confirmed. Deployable cash after: 5,778,972.69. See portfolio_state.yaml LEDGER_2026_11_17."
     sleeve_orders_gap_close:
       basis: "2026-08-24 holdings scaled to 2026-11-16 official closes; QUAL 4:1 split effective 2026-11-05 (post-split close x4)"
       holdings: {QQQM: 21330.75, QUAL: 11900.98, DFAC: 14910.29, DUHP: 13867.60, SPMO: 3469.34, DISV: 43581.77, DFIV: 35496.17, DFEV: 24716.14}
