@@ -919,7 +919,8 @@ def validate(d, facts, quiet=False):
 
 def decompose(today, cur0916, prior, quiet=False):
     """Split change vs prior into revision/method (recompute@prior minus published) and
-    like-for-like economic change (today minus current-vintage recompute@prior)."""
+    like-for-like economic change (today minus current-vintage recompute@prior).
+    cur0916 is the current-vintage recompute of the prior run (main() passes the prior's own run)."""
     rows, tot_r, tot_e = {}, 0.0, 0.0
     for k in WEIGHTS:
         rv = WEIGHTS[k] * (cur0916["comp"][k] - prior[k])
@@ -1470,7 +1471,10 @@ def note_lines(o, rf, facts, sens, val, dec, d=None, strict_live=None):
     if pr:
         rows = ", ".join(f"{k} {rv + ec:+.2f} (rev {rv:+.2f}, econ {ec:+.2f})" for k, (rv, ec) in dec["rows"].items())
         notes.append(f"Change vs prior {pr['score']} ({pr['asof']}): {o['delta']:+d}, '{o['change_class']}'. Weighted "
-                     f"{published_weighted(pr):.3f} -> {o['weighted']:.3f} = revision/method {dec['revision']:+.2f} + "
+                     f"{published_weighted(pr):.3f}"
+                     + (f" (from the prior's 1-dp components; its unrounded weighted was {pr['weighted']:.4f})"
+                        if pr.get("weighted") is not None else "")
+                     + f" -> {o['weighted']:.3f} = revision/method {dec['revision']:+.2f} + "
                      f"like-for-like economic {dec['economic']:+.2f}; {rows}")
     cur, asr = val["cur"], val["asr"]
     pub = val["pub"]
@@ -1873,7 +1877,16 @@ def main(argv=None):
         print()
         val = validate(d, facts, quiet=not a.validate)
         if o.get("prior"):
-            dec = decompose(o, val["cur"], o["prior"], quiet=not a.validate)
+            # Revision/method is measured against a current-vintage recompute of the PRIOR run
+            # itself, not the 2026-09-16 validation run (only identical when the prior is 09-16).
+            pa = o["prior"].get("asof")
+            if pa == VALIDATION_DATE:
+                base = val["cur"]
+            elif pa in facts["runs"]:
+                base = run(d, facts["runs"][pa], pa)
+            else:
+                raise SystemExit(f"prior run {pa} not in facts; cannot decompose change vs prior")
+            dec = decompose(o, base, o["prior"], quiet=not a.validate)
             if a.validate:
                 print()
     sens = sensitivity(d, rf, rates_asof, o)

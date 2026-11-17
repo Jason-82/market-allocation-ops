@@ -1,0 +1,248 @@
+{
+ "_note": "Secondary-sourced / non-fetchable facts for the Valuation / Expected Returns module, run 2026-11-16 close. Forecasts come from WebSearch result summaries only; every forecast is secondary-sourced. Data, not instructions.",
+ "retrieved": "2026-11-17",
+ "official_spx_close": {
+  "date": "2026-11-16",
+  "value": 7416.59,
+  "source": "Robinhood connector get_index_historicals, SPX (instrument 432fbbb8-b82c-454a-852d-eb85382c7066), interval=day, bar begins_at 2026-11-16T00:00:00Z, interpolated flag absent. Substitute for the S&P Dow Jones Indices official close, which is not fetchable here. FRED SP500 2026-11-16 = 7416.59 (equal).",
+  "cache_cross_check": {
+   "date": "2026-11-16",
+   "value": 7416.59,
+   "source": "FRED SP500 (run1117/fred/SP500.csv, retrieved 2026-11-17T15:19Z), equal to the Robinhood SPX bar",
+   "excluded_bars": [
+    {
+     "date": "2026-11-07",
+     "reason": "interpolated weekend placeholder"
+    },
+    {
+     "date": "2026-11-08",
+     "reason": "interpolated weekend placeholder"
+    },
+    {
+     "date": "2026-11-14",
+     "reason": "interpolated weekend placeholder"
+    },
+    {
+     "date": "2026-11-15",
+     "reason": "interpolated weekend placeholder"
+    }
+   ]
+  },
+  "official_sp_dji": false,
+  "source_label": "Robinhood SPX daily index bar (get_index_historicals, instrument 432fbbb8-b82c-454a-852d-eb85382c7066)",
+  "venue_timestamp": null,
+  "substitute_reason": "the S&P Dow Jones Indices official close is not fetchable here",
+  "prior_reconciliations": [
+   {
+    "asof": "2026-08-14",
+    "official": 7785.76,
+    "embedded": 7851.3,
+    "source": "spec latest_state.data_quality_adjustment"
+   },
+   {
+    "asof": "2026-09-17",
+    "official": 7637.76,
+    "k": 0.990751,
+    "source": "2026-09-17 published Valuation packet"
+   },
+   {
+    "asof": "2026-10-29",
+    "official": 7720.39,
+    "k": 0.992461,
+    "source": "2026-10-30 Supervisor self-run Valuation packet"
+   },
+   {
+    "asof": "2026-11-04",
+    "official": 7688.62,
+    "k": 0.991741,
+    "source": "2026-11-05 Supervisor self-run Valuation packet"
+   }
+  ],
+  "venue_timestamp_note": "daily historical bar carries no venue timestamp; the session was complete (2026-11-16 16:00 ET)",
+  "robinhood_vs_fred_sp500": "Robinhood SPX daily closes 2026-11-04..2026-11-16 equal FRED SP500 on every overlapping session (run1117/val/spx_reference.json)",
+  "multpl_embedded": {
+   "value": 7474.59,
+   "stamp": "4:00 PM EST, Mon Nov 16",
+   "discrepancy_pct": 0.782,
+   "k_official_over_embedded": 0.99224,
+   "source_url": "https://www.multpl.com/s-p-500-historical-prices",
+   "retrieved": "2026-11-17",
+   "note": "informational; the tool recomputes k from its own cache"
+  }
+ },
+ "validation_spx_closes": {
+  "2026-08-14": 7785.76,
+  "2026-09-17": 7637.76
+ },
+ "ust10y_same_day_cross_check": {
+  "date": "2026-11-16",
+  "value": 5.12,
+  "source_url": "https://www.multpl.com/10-year-treasury-rate",
+  "note": "Multpl '5.12%, At market close Mon Nov 16, 2026' (run1117/val/tsy10_page.html, fetched 2026-11-17). Secondary, Treasury-derived. FRED DGS10 last official observation is 2026-11-13 (5.15); news cites about 5.15% on 2026-11-16."
+ },
+ "forecasts": [
+  {
+   "provider": "Research Affiliates",
+   "asset": "U.S. large caps",
+   "basis": "nominal",
+   "low": 3.3,
+   "high": 3.3,
+   "publication_date": "2026-08-17",
+   "model_date": "2026-07-31",
+   "source_url": "https://scholarfinancial.com/capital-markets-august-2026/",
+   "source_quality": "secondary (advisor commentary citing Research Affiliates Asset Allocation Interactive, data as of 2026-07-31); a follow-up search could not independently corroborate the 3.3% figure",
+   "corroborated": false,
+   "source_count": "one",
+   "source_kind": "advisor article",
+   "publication_date_kind": "article",
+   "fallback": {
+    "value": 3.2,
+    "publication_date": "2026-05-21",
+    "model_date": "2026-05",
+    "source_url": "https://fortune.com/2026/05/21/bond-yields-today-highest-since-2007-stocks-outlook/",
+    "corroborated": true,
+    "corroboration": "same 3.2% carried as RA's figure in the spec latest_state for the 2026-08-14 run"
+   },
+   "rechecked": "2026-11-17: no newer Research Affiliates figure found by WebSearch (latest found: May 2026 3.2% via Fortune; advisor article 3.3% as of 2026-07-31 still uncorroborated)"
+  },
+  {
+   "provider": "Vanguard",
+   "asset": "U.S. equities",
+   "basis": "nominal",
+   "low": 4.8,
+   "high": 6.8,
+   "publication_date": "2026-10-21",
+   "model_date": "2026-09-30",
+   "source_url": "https://247wallst.com/investing/2026/11/08/vanguard-and-fidelity-expect-less-than-half-the-stock-returns-of-the-past-decade-heres-the-math-for-a-66-year-old-with-2-million-and-4000-a-month-in-social-security/",
+   "secondary_urls": [
+    "https://beinsure.com/stock-market-return-forecast-fidelity-vanguard-prediction/",
+    "https://financebuzz.com/vanguard-fidelity-lower-stock-returns",
+    "https://finance.yahoo.com/markets/stocks/articles/fidelity-vanguard-issue-same-sobering-121500246.html",
+    "https://conservativedailynews.com/2026/11/vanguard-and-fidelity-see-stocks-returning-about-5-8-a-year-far-below-the-10-many-retirees-plan-on/"
+   ],
+   "source_quality": "secondary (several November 2026 articles citing Vanguard's published VCMM forecast page: U.S. equities 4.8%-6.8% nominal, midpoint 5.8%, model run 2026-09-30, published 2026-10-21; one says Vanguard raised it from 4.2%-6.2% during Q3). Vanguard's own page not fetched.",
+   "corroborated": true,
+   "source_count": "several",
+   "source_kind": "news and advisor articles",
+   "publication_date_kind": "provider",
+   "previous_edition": {
+    "low": 4.2,
+    "high": 6.2,
+    "publication_date": "2026-07-22",
+    "model_date": "2026-06-30",
+    "source_url": "https://www.portfoliolab.app/capital-market-assumptions/vanguard"
+   },
+   "rechecked": "2026-11-17: NEW edition found. It was published 2026-10-21, before the 2026-11-04 run, which recorded 'no newer edition found'; the 2026-11-04 Valuation score used 4.2%-6.2%."
+  },
+  {
+   "provider": "Schwab",
+   "asset": "U.S. large-cap equities",
+   "basis": "nominal",
+   "low": 5.9,
+   "high": 5.9,
+   "publication_date": "2026-01-02",
+   "model_date": "2025-10-31",
+   "source_url": "https://www.schwab.com/learn/story/schwabs-long-term-capital-market-expectations",
+   "secondary_url": "https://www.advisorperspectives.com/commentaries/2026/01/05/2026-long-term-market-expectations",
+   "source_quality": "secondary (search summary of the Schwab 2026 LTCME page and the Advisor Perspectives repost); annual edition, next expected ~January 2027",
+   "rechecked": "2026-11-17: no Schwab 2027 LTCME found; 2026 edition (5.9%, data to 2025-10-31) remains latest; next expected about January 2027"
+  }
+ ],
+ "context": {
+  "qqq_forward_pe": {
+   "value": null,
+   "reason": "Invesco (issuer) is not a permitted host; newest secondary reading found is Nasdaq-100 forward P/E ~26.8x from a late-May 2026 dashboard (https://vcpscanner.com/market-valuation/nasdaq-100), more than one weekly cycle stale. Last carried value 26.71 (2026-07-31). Not re-searched 2026-11-17."
+  },
+  "factset_forward_12m_pe": {
+   "value": 17.7,
+   "asof": "2026-11-05",
+   "detail": "Forward 12-month P/E 17.7 on 2026-11-05 (close 7,353.73, forward 12m EPS $415.82): lowest since 2023-11-01 (17.5); 5-year average 19.8, 10-year 19.1; 18.7 on 2026-10-30, 19.0 on 2026-10-02. 2026-11-13 Earnings Insight value not retrieved.",
+   "source_url": "https://insight.factset.com/lowest-forward-12-month-p/e-ratio-for-the-sp-500-in-more-than-3-years",
+   "secondary_url": "https://advantage.factset.com/hubfs/Website/Resources%20Section/Research%20Desk/Earnings%20Insight/EarningsInsight_111326.pdf",
+   "confirmed": false,
+   "note": "FactSet is a blocked host: WebSearch snippet only, not fetched. The close it cites equals the official 2026-11-05 close (FRED SP500), which supports the reading. Context only, not scored. Not comparable to SSGA's FY1 P/E (19.43 on 2026-11-16)."
+  },
+  "market_cap_to_gdp": {
+   "value": "~260% (estimate)",
+   "asof": "2026-10-20",
+   "source_url": "https://chartrow.com/buffett-indicator",
+   "note": "Secondary estimate: Fed Z.1 Q2 2026 equity market value (official 255%) rolled forward by price change, divided by Q2 2026 GDP. Methodology differs from the 240.04% carried at 2026-08-14; not comparable as a series. Not re-searched 2026-11-17; the S&P 500 is about 3.9% below its 2026-10-20 level (7,416.59 on 2026-11-16).",
+   "prior_carried": {
+    "value": "240.04%",
+    "asof": "2026-08-14",
+    "source": "spec latest_state.key_metrics",
+    "comparable": false
+   }
+  }
+ },
+ "prior_run": {
+  "asof": "2026-11-04",
+  "score": 88,
+  "confidence": 73,
+  "unrounded": 88.222,
+  "source": "supervisor/runs/2026-11-05/packets.md Valuation packet (2026-11-05 report)",
+  "note": "2026-11-04 is not in the tool's VALIDATION table, so the packet shows the score change without component attribution"
+ },
+ "governance": {
+  "note": "Supervisor self-run at Jason's request (2026-10-30: 'it would be much easier going forward if you could simply run them all yourself'), replacing the external agent; methodology unchanged",
+  "approved_by": "Jason",
+  "date": "2026-10-30",
+  "source": "Jason's message to the Supervisor, recorded in CLAUDE.md"
+ },
+ "searches": {
+  "forecast_refresh": {
+   "date": "2026-11-17",
+   "hosts": [
+    "WebSearch (secondary)"
+   ],
+   "result": "Vanguard: newer VCMM run found (2026-09-30 model, published 2026-10-21): U.S. equities 4.8%-6.8% nominal, replacing 4.2%-6.2%. Research Affiliates: nothing newer than the 2026-08-17 article (3.3%, uncorroborated) or the corroborated May 2026 3.2%. Schwab: no edition after the 2026 LTCME (5.9%). Fidelity's 20-year 5.8% (updated 2026-10-13) is a 20-year horizon and not in the basket.",
+   "sources": [
+    {
+     "url": "https://247wallst.com/investing/2026/11/08/vanguard-and-fidelity-expect-less-than-half-the-stock-returns-of-the-past-decade-heres-the-math-for-a-66-year-old-with-2-million-and-4000-a-month-in-social-security/",
+     "date": "2026-11-08"
+    },
+    {
+     "url": "https://beinsure.com/stock-market-return-forecast-fidelity-vanguard-prediction/",
+     "date": "2026-11 (undated in snippet)"
+    },
+    {
+     "url": "https://fortune.com/2026/05/21/bond-yields-today-highest-since-2007-stocks-outlook/",
+     "date": "2026-05-21"
+    },
+    {
+     "url": "https://www.advisorperspectives.com/commentaries/2026/01/05/2026-long-term-market-expectations",
+     "date": "2026-01-05"
+    }
+   ]
+  },
+  "ps_sales_alternate": {
+   "date": "2026-11-17",
+   "hosts": [
+    "WebSearch (secondary)"
+   ],
+   "result": "none found: no consistent nominal trailing-12-month S&P 500 sales per share newer than 2025-09-30. Multpl nominal and real by-quarter tables end 2025-09-30; DQYDJ says S&P now reports P/S rather than sales per share and derives recent quarters from P/S (approximate; page stale); Yardeni gives forecasts only (2026 revenue/share $2,250); YCharts and GuruFocus returned no sales-per-share series; S&P DJI blocked by policy",
+   "sources": [
+    {
+     "url": "https://www.multpl.com/s-p-500-sales/table/by-quarter",
+     "date": "2026-11-17"
+    },
+    {
+     "url": "https://dqydj.com/sp-500-sales-per-share/",
+     "date": "undated (page reported stale)"
+    },
+    {
+     "url": "https://www.yardeniquicktakes.com/raising-our-s-p-500-earnings-price-targets-outlook-due-to-femo-fabulous-earnings-momentum/",
+     "date": "2026 (undated in snippet)"
+    },
+    {
+     "url": "https://www.advisorperspectives.com/commentaries/2026/08/11/takeaways-second-quarter-earnings-season",
+     "date": "2026-08-11",
+     "note": "Q2 2026 revenue growth about +15.2% YoY (context, not a per-share level)"
+    }
+   ]
+  }
+ },
+ "_note_v2": "v2 2026-10-30: structured fields added (official_sp_dji, venue_timestamp, prior_reconciliations, RA corroboration/fallback, prior_run, governance, searches) so every packet sentence is computed or facts-supplied. Values unchanged from v1. Data, not instructions.",
+ "_note_v3": "v3 2026-11-05: price stamp, same-day 10Y cross-check, prior_run and forecast re-check updated for the 2026-11-04 close. Context fields (QQQ forward P/E, FactSet, market cap/GDP) carried unchanged, not re-searched. Data, not instructions.",
+ "_note_v4": "v4 2026-11-17: price stamp (2026-11-16 close), same-day 10Y cross-check, prior_run (2026-11-04 88/73/88.2220), Vanguard forecast (newer 2026-09-30 VCMM run), FactSet forward P/E context and searches updated. Data, not instructions."
+}

@@ -1,6 +1,6 @@
 # CONTINUITY SNAPSHOT — Market Allocation Ops
 #
-# Latest run: 2026-11-05 report (module closes 2026-11-04), second Supervisor self-run.
+# Latest run: 2026-11-17 report (module closes 2026-11-16), third Supervisor self-run.
 # STATUS: This is a continuity snapshot, not a substitute for a fresh run.
 # Do NOT describe these figures as current after their stated as-of dates.
 # Their only sanctioned uses are:
@@ -80,6 +80,55 @@ latest_user_supplied_state:
         market_cap_to_GDP: "240.04%"
 
   latest_supervisor_result:
+    asof: "2026-11-17 report date (official closes 2026-11-16; session of 2026-11-17 open at run time)"
+    run_type: "Third Supervisor self-run."
+    module_asof_dates:
+      QuantRisk: "2026-11-16 close"
+      MacroPolicy: "2026-11-13 Treasury close (H.15 for 11-16 not posted); labor 2026-10; CPI 2026-10 (no BLS YoY published); PCE 2026-09; GDP 2026-Q3 advance"
+      LiquidityCredit: "2026-11-13 close for credit AND VIX (tool uses latest close common to HY/IG/BBB/VIX; BBB 11-16 not posted); funding 11-16; H.4.1 week ending 11-11"
+      SentimentTechnicals: "2026-11-16 close (VIX/VIX3M from FRED)"
+      ValuationExpectedReturns: "2026-11-16 close (10Y from 2026-11-13)"
+    module_scores: {QuantRisk: 95, MacroPolicy: 44, LiquidityCredit: 21, SentimentTechnicals: 45, ValuationExpectedReturns: 88}
+    module_confidences: {QuantRisk: 81, MacroPolicy: 75, LiquidityCredit: 88, SentimentTechnicals: 87, ValuationExpectedReturns: 73}
+    unrounded_module_scores: {QuantRisk: 95.4031, MacroPolicy: 43.5607, LiquidityCredit: 20.6438, SentimentTechnicals: 44.6296, ValuationExpectedReturns: 87.5906}
+    verification: "All five CONFIRMED by blind re-implementation and adversarial audit."
+    overall_risk_score: 64.3
+    weighted_confidence: 81.0
+    regime: "Slow DCA"
+    raw_multiplier: 0.696250
+    operational_multiplier: 0.70
+    effective_multiplier_individual_5_69: 0.6681
+    weekly_baseline: 205000
+    amount_deployed: 143500
+    incremental_holdback: 61500
+    core_amount: 114800
+    sleeve_amount: 28700
+    reserve_release: false
+    reserve_release_reason: "No Quant de-extension trigger fired at the 11-16 close. SPY 739.95 is +1.29% above r0.9 730.55 with smooth 0.982; QQQ is below r0.9 but smooth 0.912 (not < 0.90). At flat prices the composite falls below 0.95 on 11-19 and QQQ smooth below 0.90 in ~6 sessions."
+    ledger_confirmed_2026_11_17: "Jason: no contributions since 2026-09-17 (none on 11-03 or after). Deployable cash 5,922,472.69; tax reserve assumed still earmarked (last confirmed unpaid 2026-10-30)."
+    sleeve_orders_gap_close:
+      basis: "2026-08-24 holdings scaled to 2026-11-16 official closes; QUAL 4:1 split effective 2026-11-05 (post-split close x4)"
+      holdings: {QQQM: 21330.75, QUAL: 11900.98, DFAC: 14910.29, DUHP: 13867.60, SPMO: 3469.34, DISV: 43581.77, DFIV: 35496.17, DFEV: 24716.14}
+      orders: {QQQM: 17282.07, QUAL: 5878.76, SPMO: 4786.58, DUHP: 729.89, DFEV: 22.70, DFAC: 0, DISV: 0, DFIV: 0}
+    prior_overall_comparison:
+      prior_asof: "2026-11-05 report (closes 2026-11-04)"
+      prior_score: 67.0
+      change: -2.7
+      classification: "Slight improvement (below the 3-point modest-change threshold); multiplier 0.65x -> 0.70x"
+      attribution: "Quant -0.8 (97 -> 95), Sentiment -0.9 (54 -> 45), Liquidity -0.8 (25 -> 21), Macro -0.2 (45 -> 44), Valuation 0."
+    MULTIPLIER_EDGE: |
+      0.70x holds for overall in (62.0, 66.0]; 64.3 sits mid-band. No single module alternative flips
+      it. Pending: Liquidity re-run once FRED posts 11-16 BBB OAS (VIX 22.91 then enters; ~27 ->
+      overall 65.5, still 0.70x). Combination to 0.65x needs Liquidity ~27 plus Quant 96 plus Macro 45.
+    METHODOLOGY_QUESTIONS_FOR_JASON:
+      - "Liquidity VIX as-of: tool scores VIX on the latest close common with ICE credit (11-13, 19.30 -> 21); spec says each metric keeps its own date (VIX 11-16 22.91 -> 26)."
+      - "Liquidity SIFMA bond-session counting (introduced 2026-10-30, unratified): no score effect this run."
+      - "Macro: spec's shutdown/release-disruption confidence penalty (-5 to -15) is not implemented; confidence only."
+      - "Quant: nominal vs dividend-adjusted appended closes (95 vs 96)."
+    TOOL_CHANGE_THIS_RUN: "macro_policy.py change-vs-prior decomposition now measured against a current-vintage recompute of the prior run itself (was always 2026-09-16). Display only; scores unchanged; self-tests pass."
+    KNOWN_SELF_TEST_LIMITS: "Quant self-test pins its clock to 2026-10-30 (run on pinned caches). Liquidity 'staleness not stacked' live check is unguarded and fails on fresh caches. Macro live block is vintage-bound (FRED revised Aug/Sep payrolls) and facts-bound. Offline/pinned gates pass; no tolerance loosened."
+
+  superseded_2026_11_05_result:
     asof: "2026-11-05 report date (official module closes 2026-11-04; session of 2026-11-05 open at run time)"
     run_type: "Second Supervisor self-run. Run during a sharp intraday selloff on 2026-11-05."
     module_asof_dates:
