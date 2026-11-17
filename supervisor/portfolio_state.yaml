@@ -97,6 +97,23 @@ LEDGER_2026_11_17:
     supplied. Until they are, the full 1,000,000 stays earmarked and deployable cash is
     unchanged. Do not release any of it on inference.
   weekly_baseline: 205000
+  ACTUALS_SUPPLIED_2026_11_17:
+    source: "Jason, 2026-11-17 ~13:40 CT: Schwab positions screenshot (manual sleeve) and Individual robo total. Supersedes the estimate below."
+    manual_sleeve_market_value: 225930.73
+    manual_sleeve_positions: {QQQM: 51947.29, DISV: 43177.60, DFIV: 35098.12, DFEV: 24477.60, QUAL: 22978.99, DUHP: 18580.53, DFAC: 18051.71, SPMO: 11618.89}
+    manual_sleeve_weights_pct: {QQQM: 22.99, DISV: 19.11, DFIV: 15.53, DFEV: 10.83, QUAL: 10.17, DUHP: 8.22, DFAC: 7.99, SPMO: 5.14}
+    deviation_from_hybrid_targets_pp: 5.11
+    dfev_22_70_line: "Not placed (DFEV share count unchanged since 2026-08-24)."
+    unreconciled_sleeve_difference: |
+      Actual sleeve is 27,957.69 above the estimate (08-24 holdings drifted to 11-16 + today's
+      orders). The excess sits entirely in QQQM (+13.3k), QUAL (+5.2k), DUHP (+4.0k), SPMO (+3.4k)
+      and DFAC (+3.1k). DISV/DFIV/DFEV match to within 0.4k. DFAC was not in today's order, so this
+      is not a duplicated order. It implies ~28k of sleeve purchases not in the ledger, or an
+      incomplete 08-24 export. Asked Jason; unresolved.
+    individual_robo_total: 1068101.00
+    individual_robo_cash: "~64,000 (~6.0%)"
+    individual_robo_check: "725,123.11 (08-24) + 344,800 contributed since = 1,069,923.11 vs 1,068,101.00 supplied: consistent with all 344,800 having gone to Individual."
+    other_robo_accounts: "Trust 1, Trust 2, Roth IRA not supplied; last known 1,554,365.55 combined (2026-08-24, not marked to market)."
   sleeve_estimate_after_buys:
     basis: "2026-08-24 holdings scaled to 2026-11-16 official closes (QUAL post-split close x4), plus the 2026-11-17 order dollars at cost. An estimate, not a statement."
     total: 197973.04

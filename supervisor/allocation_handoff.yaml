@@ -296,13 +296,15 @@ open_decision_emerging_markets:
     action: "Sell all DEMSX (about 529,000) on 2026-11-17. Jason has realized losses this year that offset part or all of the ~130,600 estimated gain."
     projected_em_after: "~14.9% at full deployment (robo ~12.4-12.5% + DFEV ~2.4%), whether proceeds go to the sleeve or the robo"
     proceeds_recommendation: |
-      Reinvest promptly (it is a fund swap, not new cash, so it does not go through the weekly
-      DCA pacing), into the MANUAL SLEEVE via gap-closing to the hybrid targets, NOT the robo.
-      Reason: on the recorded ledger (08-24 balances plus contributions, not marked to market) the
-      invested split is about 93.5 core : 6.5 sleeve because early contributions went 100% to the
-      robo. Sleeve routing brings it to about 80:20 at once and leaves the sleeve ~19% of the plan
-      base at full deployment. Robo routing would leave the sleeve near 14% permanently and park
-      ~5.7% of proceeds as robo cash. EM ends near 15% either way.
+      CORRECTED 2026-11-17 after Jason supplied actuals. Reinvest promptly (a fund swap, not new
+      cash, so not paced by the weekly DCA). Split the net proceeds so that invested core:sleeve
+      lands at 80:20: sleeve = 0.20 x (robo + sleeve + proceeds) - current sleeve; the rest to the
+      robo (Jason Individual). Because weekly contributions are also 80/20, 80:20 now stays 80:20
+      at full deployment. At 529,000 net: ~449.5k sleeve (gap-closed to the hybrid targets) and
+      ~79.5k robo. The first version (all to the sleeve) double-counted 230,000 of robo
+      contributions and used an estimated sleeve ~28k too low; both errors biased toward the sleeve.
+      Robo total uses Individual 1,068,101 (supplied) + Trust 1/Trust 2/Roth at 08-24 values.
+    projected_em_after_corrected: "~14.5% of plan base (~15.4% of core+sleeve) at full deployment"
     status_of_proceeds: "Awaiting Jason's choice and the actual sale proceeds and tax set-aside."
   target_requested: "~15% of total"
   projected_without_change: 20.97
