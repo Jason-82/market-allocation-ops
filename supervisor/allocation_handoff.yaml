@@ -304,6 +304,13 @@ open_decision_emerging_markets:
       ~79.5k robo. The first version (all to the sleeve) double-counted 230,000 of robo
       contributions and used an estimated sleeve ~28k too low; both errors biased toward the sleeve.
       Robo total uses Individual 1,068,101 (supplied) + Trust 1/Trust 2/Roth at 08-24 values.
+    scope_confirmed_2026_11_17: "Jason: keep the 80/20 portfolio-wide (all four robo accounts = core), not Individual-only."
+    open_choice_2026_11_17: |
+      Jason raised adding the DEMSX proceeds to the DCA pool instead of reinvesting at once.
+      Options put to him: A) reinvest now, split ~449.5k sleeve / ~79.5k robo; B) add the net
+      proceeds to deployable cash, rescale the baseline to ~220,000 (holds ~28.6 weeks at 1.0x),
+      and split weekly contributions ~75/25 robo/sleeve until invested core:sleeve reaches 80:20.
+      The sale itself (and the 2026 loss offset) happens either way. Pending his choice.
     projected_em_after_corrected: "~14.5% of plan base (~15.4% of core+sleeve) at full deployment"
     status_of_proceeds: "Awaiting Jason's choice and the actual sale proceeds and tax set-aside."
   target_requested: "~15% of total"
