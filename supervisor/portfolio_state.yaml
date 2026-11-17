@@ -79,17 +79,23 @@ LEDGER_2026_11_17:
     source_report: "Supervisor run 2026-11-17 (Q95 M44 L21 S45 V88, overall 64.3, 0.70x)"
     total: 143500
     core_to_robo: 114800
-    core_destination: "Recommended Jason Individual (5.69% robo cash); destination NOT confirmed"
+    core_destination: "Jason Individual (5.69% robo cash) - confirmed by Jason 2026-11-17"
     manual_sleeve: 28700
     sleeve_orders: {QQQM: 17282.07, QUAL: 5878.76, SPMO: 4786.58, DUHP: 729.89, DFEV: 22.70, DFAC: 0, DISV: 0, DFIV: 0}
     status: |
-      Jason reported the buys complete. The amounts above are the RECOMMENDED orders, not
-      confirmed fills: share counts, fill prices, the robo destination account and whether the
-      $22.70 DFEV line was placed or rolled into QQQM were not supplied. This is the first sleeve
+      Jason reported the buys complete and confirmed "all went to Jason Individual". The amounts
+      above are the RECOMMENDED orders, not confirmed fills: share counts, fill prices and whether
+      the $22.70 DFEV line was placed or rolled into QQQM were not supplied. This is the first sleeve
       contribution since 2026-08-24 and the first execution of the full 80/20 split.
   deployable_cash_after: 5778972.69
   deployable_cash_basis: "5,922,472.69 (2026-09-18 confirmed ledger) less 143,500"
-  tax_reserve: "1,000,000 earmarked; last confirmed unpaid 2026-10-30, not reconfirmed 2026-11-17"
+  tax_reserve: "1,000,000 still earmarked pending Jason's figures (see tax_status_2026_11_17)"
+  tax_status_2026_11_17: |
+    Jason, 2026-11-17: "only remaining owed taxes are from 2021 and the IRS has not finished
+    looking at that return yet." That implies the other amended-return bills were settled, but
+    the amounts paid, which cash paid them, and the amount to keep earmarked for 2021 were NOT
+    supplied. Until they are, the full 1,000,000 stays earmarked and deployable cash is
+    unchanged. Do not release any of it on inference.
   weekly_baseline: 205000
   sleeve_estimate_after_buys:
     basis: "2026-08-24 holdings scaled to 2026-11-16 official closes (QUAL post-split close x4), plus the 2026-11-17 order dollars at cost. An estimate, not a statement."
@@ -211,8 +217,18 @@ emerging_markets_concentration:
     independent tilts stacking rather than one decision.
 
 demsx_review:
-  decision: "Hold. Reduce exposure through contributions only. No sale."
-  value: 598619.11
+  decision: "Hold. Reduce exposure through contributions only. No sale. (Re-opened by Jason 2026-11-17.)"
+  update_2026_11_17:
+    value: 529000
+    value_source: "Jason, 2026-11-17 (held in Jason Individual, non-robo positions)"
+    change_since_2026_08_24: "-11.63% (598,619.11 -> 529,000), vs SCHE -8.07%, FNDE -5.35%, SPEM -8.12%, DFEV -8.95% price-only 08-24 -> 11-16"
+    unrealized_gain_est: 130648
+    tax_if_sold_est: {at_23_8_pct: 31094, at_18_8_pct: 24562}
+    tax_caveat: "Assumes the 2026-08-24 cost basis 398,352.41 is unchanged; reinvested distributions since would raise basis. No lot detail supplied."
+    pct_of_plan_base: 5.40
+    plan_base_note: "10,788,478 less the 1,000,000 tax reserve; not marked to market"
+    share_of_em_equity_est: 54.9
+  value_2026_08_24: 598619.11
   cost_basis: 398352.41
   unrealized_gain: 200266.70
   tax_if_sold:
