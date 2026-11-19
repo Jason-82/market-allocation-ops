@@ -19,9 +19,11 @@ holdings_2026_11_18:
 decisions:
   sell_demsx: "Jason, 2026-11-19: sell all on 2026-11-20 (tax-free inside the 401k)."
   em_target: "15% of invested managed assets (same target Jason chose for his own portfolio)"
+  spcx: "Jason, 2026-11-19: keep SPCX, held outside the plan's target math."
+  rmd_2026: "Jason, 2026-11-19: plan on a 2026 RMD of ~250,000, raised from this ETF half (deadline 2026-12-31)."
 
 draft_plan_v2_2026_11_19:
-  status: "DRAFT - pending Jason's answers on suitability (age, RMDs, withdrawals, advisor half's bonds/cash), SPCX, DFSV, plan rules."
+  status: "SUPERSEDED by plan_v3 (RMD and SPCX answered 2026-11-19)."
   method: |
     Core weights from Jason Individual's SIP holdings (2026-08-24 snapshot; PRFZ treated as FNDA),
     REIT funds dropped, FNDE/SCHE scaled so total EM = 15% of invested managed assets with DFEV held
@@ -37,3 +39,13 @@ draft_plan_v2_2026_11_19:
     - "Template is one drifted snapshot of SIP's most aggressive profile, not Schwab's published targets."
     - "A manual replica holds no mandatory cash, so it runs ~6pp more equity than an SIP account."
     - "Recompute share counts on trade day; DEMSX sells at the 2026-11-20 NAV."
+
+plan_v3_2026_11_19:
+  status: "CURRENT - supersedes v2. Raises 250,000 cash for the RMD, then rebalances the rest."
+  method: "v2 method (no REITs, DFEV held, $5k no-trade band, SPCX outside) on an invested base of 2,257,317.65 = managed 2,515,617.65 - 250,000 RMD - 8,300 buffer."
+  trades_at_2026_11_18_prices:
+    sell: {DEMSX: all, DFSV: all, FNDX: 1559, SCHF: 1225, FNDF: 538, QQQM: 84, SCHX: 617, SPMO: 113, DISV: 268, DFIV: 175, QUAL: 117}
+    buy: {SCHG: 1672, SCHE: 1020, SCHA: 655, FNDA: 395}
+    gross: "sells ~374,347 / buys ~123,851 -> cash ~258,796 (RMD 250,000 + buffer ~8,796)"
+  after: {em_pct_of_invested: 14.8, core_pct: 78.6, sleeve_funds_pct: 21.4, international_pct: 45.8}
+  open: "Confirm the exact RMD with Fidelity, whether BrokerageLink cash must move to the plan's core account before distribution, and the withholding election."
