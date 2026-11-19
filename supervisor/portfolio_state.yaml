@@ -120,6 +120,26 @@ LEDGER_2026_11_17:
     positions: {QQQM: 38612.82, QUAL: 17779.74, DFAC: 14910.29, DUHP: 14597.49, SPMO: 8255.92, DISV: 43581.77, DFIV: 35496.17, DFEV: 24738.84}
     deviation_from_hybrid_targets_pp: 9.95
 
+LEDGER_2026_11_19:
+  reported_by: "Jason, 2026-11-19"
+  demsx_sale:
+    proceeds: 526000
+    tax_withheld: 0
+    reason_no_withholding: "Jason has 2026 realized losses that offset the gain."
+    est_realized_gain: 127647.59
+    est_gain_basis: "526,000 less the 2026-08-24 recorded cost basis 398,352.41; no lot detail supplied"
+  proceeds_choice: "Option B - added to the DCA pool, not reinvested at once."
+  deployable_cash: 6304972.69
+  deployable_cash_basis: "5,778,972.69 (after the 2026-11-17 contribution) + 526,000"
+  tax_reserve: "1,000,000 still earmarked (2021 bill pending IRS review; amounts paid for other years not supplied)"
+  weekly_baseline: 220000
+  weekly_split: "75/25 robo/sleeve until invested core:sleeve reaches 80:20 portfolio-wide"
+  em_after_sale_est: "~452,600 today (robo ~428,200 + DFEV 24,478), ~4.7% of plan base; ~15% at full deployment"
+  open_items:
+    - "Unreconciled ~27,958 of sleeve value vs the ledger (QQQM/QUAL/DUHP/SPMO/DFAC)."
+    - "Current Trust 1 / Trust 2 / Roth robo balances (still 2026-08-24 values)."
+    - "Tax figures: amounts paid for other years and the 2021 amount to keep earmarked."
+
 deployment_horizon:
   weekly_baseline: 215000
   superseded_baseline_2026_08_24: 250000

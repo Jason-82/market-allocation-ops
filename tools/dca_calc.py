@@ -46,7 +46,13 @@ WEIGHTS = {
 #   250,000 x 5,922,472.69 / 7,152,472.69 = 207,008 -> rounded to 205,000
 # The 1,000,000 is EARMARKED for tax, not yet paid. It must stay in cash and must not be
 # deployed; it is excluded from deployable cash rather than netted against the portfolio.
-WEEKLY_BASELINE = Decimal("205000")
+BASELINE_2026_09_18 = Decimal("205000")   # superseded 2026-11-19; kept so its runs stay testable
+
+# Rescaled 2026-11-19 after Jason sold DEMSX (526,000, no tax withheld - realized losses offset
+# the gain) and chose to add the proceeds to the DCA pool rather than reinvest at once.
+#   deployable 5,778,972.69 (after the 2026-11-17 contribution) + 526,000 = 6,304,972.69
+#   6,304,972.69 / 28.6 weeks = 220,454 -> 220,000 (28.7 weeks at 1.0x)
+WEEKLY_BASELINE = Decimal("220000")
 
 # The 2026-08-14 run predates the 2026-08-24 rescale and used a $312,500 baseline.
 # The self-test reconciles against it at its own baseline; do not "fix" this to the
@@ -54,7 +60,12 @@ WEEKLY_BASELINE = Decimal("205000")
 HISTORICAL_BASELINE_2026_08_14 = Decimal("312500")
 BASELINE_2026_08_24 = Decimal("250000")   # superseded 2026-09-18; kept so its run stays testable
 CORE_SHARE = Decimal("0.80")
-SLEEVE_SHARE = Decimal("0.20")
+SLEEVE_SHARE = Decimal("0.20")   # strategic split (master_handoff.yaml)
+# Temporary catch-up split approved by Jason 2026-11-19 (option B): 75/25 robo/sleeve until
+# invested core:sleeve reaches 80:20 portfolio-wide (all four robo accounts count as core). The
+# sleeve needs ~25.4% of the 6.30M pool to land at 20% at full deployment. Re-check each run;
+# revert to SLEEVE_SHARE once the invested split reaches 80:20.
+CURRENT_SLEEVE_SHARE = Decimal("0.25")
 
 CENT = Decimal("0.01")
 
@@ -166,9 +177,10 @@ def render_bands() -> str:
     return "\n".join(lines)
 
 
-def contribution_math(mult: Decimal, baseline: Decimal = WEEKLY_BASELINE) -> dict[str, Decimal]:
+def contribution_math(mult: Decimal, baseline: Decimal = WEEKLY_BASELINE,
+                      sleeve_share: Decimal = SLEEVE_SHARE) -> dict[str, Decimal]:
     total = (baseline * mult).quantize(CENT, rounding=ROUND_HALF_UP)
-    core = (total * CORE_SHARE).quantize(CENT, rounding=ROUND_HALF_UP)
+    core = (total * (1 - sleeve_share)).quantize(CENT, rounding=ROUND_HALF_UP)
     sleeve = total - core  # residual, so core + sleeve reconciles exactly to total
     return {
         "weekly_baseline": baseline.quantize(CENT),
@@ -213,6 +225,7 @@ def compute(
     confs: dict[str, Decimal] | None = None,
     baseline: Decimal = WEEKLY_BASELINE,
     robo_cash: Decimal = ROBO_CASH_FRACTION,
+    sleeve_share: Decimal = SLEEVE_SHARE,
 ) -> dict:
     overall = blend(scores)
     regime, mult_range = action_band(overall)
@@ -233,7 +246,8 @@ def compute(
     if raw is not None:
         op = to_operational(raw)
         out["operational_multiplier"] = op
-        out.update(contribution_math(op, baseline))
+        out.update(contribution_math(op, baseline, sleeve_share))
+        out["sleeve_share"] = sleeve_share
         out.update(effective_deployment(out["total_deploy"], out["core_amount"], robo_cash))
         out["robo_cash_rate"] = robo_cash
         out["effective_multiplier"] = (out["market_deploy"] / baseline).quantize(Decimal("0.0001"))
@@ -259,8 +273,9 @@ def render(res: dict, asof: str | None) -> str:
     lines.append(f"Operational multiplier: {res['operational_multiplier']}x")
     lines.append(f"Weekly baseline: ${res['weekly_baseline']:,}")
     lines.append(f"Total deploy: ${res['total_deploy']:,}")
-    lines.append(f"  Core (80%): ${res['core_amount']:,}")
-    lines.append(f"  Sleeve (20%, manual): ${res['sleeve_amount']:,}")
+    ss = res.get("sleeve_share", SLEEVE_SHARE)
+    lines.append(f"  Core ({(1 - ss) * 100:.0f}%): ${res['core_amount']:,}")
+    lines.append(f"  Sleeve ({ss * 100:.0f}%, manual): ${res['sleeve_amount']:,}")
     lines.append(f"Incremental holdback: ${res['incremental_holdback']:,}")
     lines.append(
         f"  less mandatory robo cash ({res['robo_cash_rate']:.2%} of core): ${res['cash_parked_in_core']:,}"
@@ -361,9 +376,9 @@ def self_test() -> int:
         ("effective mult", cur["effective_multiplier"], d("0.6148")),
     ]
 
-    # Current baseline (215,000) at the same 0.65x. The effective multiplier is a ratio, so it
-    # must come out identical to the 250,000 row - a check that the rescale changed only scale.
-    new = compute(scores, confs)
+    # The 205,000 baseline (2026-09-18) at the same 0.65x. The effective multiplier is a ratio, so
+    # it must come out identical to the 250,000 row - a check that the rescale changed only scale.
+    new = compute(scores, confs, BASELINE_2026_09_18)
     checks += [
         ("new baseline", new["weekly_baseline"], d("205000.00")),
         ("new deploy @0.65x", new["total_deploy"], d("133250.00")),
@@ -379,7 +394,7 @@ def self_test() -> int:
     live = compute({"quant": d(97), "macro": d(44), "liquidity": d(10),
                     "sentiment": d(63), "valuation": d(86)},
                    {"quant": d(82), "macro": d(85), "liquidity": d(93),
-                    "sentiment": d(82), "valuation": d(80)})
+                    "sentiment": d(82), "valuation": d(80)}, BASELINE_2026_09_18)
     checks += [
         ("2026-09-18 overall", live["overall_risk_score"], d("64.5")),
         ("2026-09-18 wconf", live["weighted_confidence"], d("84.6")),
@@ -390,6 +405,33 @@ def self_test() -> int:
         ("2026-09-18 core", live["core_amount"], d("114800.00")),
         ("2026-09-18 sleeve", live["sleeve_amount"], d("28700.00")),
         ("2026-09-18 holdback", live["incremental_holdback"], d("61500.00")),
+    ]
+
+    # The 2026-11-17 run, executed at 205,000 with the strategic 80/20 split.
+    r1117 = compute({"quant": d(95), "macro": d(44), "liquidity": d(21),
+                     "sentiment": d(45), "valuation": d(88)}, None, BASELINE_2026_09_18,
+                    ROBO_CASH_BY_ACCOUNT["individual"])
+    checks += [
+        ("2026-11-17 overall", r1117["overall_risk_score"], d("64.3")),
+        ("2026-11-17 op mult", r1117["operational_multiplier"], d("0.70")),
+        ("2026-11-17 deploy", r1117["total_deploy"], d("143500.00")),
+        ("2026-11-17 core", r1117["core_amount"], d("114800.00")),
+        ("2026-11-17 sleeve", r1117["sleeve_amount"], d("28700.00")),
+    ]
+
+    # Current baseline (220,000) with the 75/25 catch-up split, same scores, Individual robo cash.
+    cu = compute({"quant": d(95), "macro": d(44), "liquidity": d(21),
+                  "sentiment": d(45), "valuation": d(88)}, None, WEEKLY_BASELINE,
+                 ROBO_CASH_BY_ACCOUNT["individual"], CURRENT_SLEEVE_SHARE)
+    checks += [
+        ("current baseline", cu["weekly_baseline"], d("220000.00")),
+        ("catch-up deploy @0.70x", cu["total_deploy"], d("154000.00")),
+        ("catch-up core 75%", cu["core_amount"], d("115500.00")),
+        ("catch-up sleeve 25%", cu["sleeve_amount"], d("38500.00")),
+        ("catch-up holdback", cu["incremental_holdback"], d("66000.00")),
+        ("catch-up robo cash", cu["cash_parked_in_core"], d("6571.95")),
+        ("catch-up effective mult", cu["effective_multiplier"], d("0.6701")),
+        ("core+sleeve == deploy", cu["core_amount"] + cu["sleeve_amount"], cu["total_deploy"]),
     ]
 
     failed = 0
@@ -408,6 +450,9 @@ def main(argv: list[str]) -> int:
                    help="Print soft/hard rebalancing bands for the current strategic targets")
     p.add_argument("--asof")
     p.add_argument("--baseline", default=str(WEEKLY_BASELINE))
+    p.add_argument("--sleeve-share", default=str(CURRENT_SLEEVE_SHARE),
+                   help="Share of each contribution sent to the manual sleeve (strategic 0.20; "
+                        "temporary catch-up 0.25 since 2026-11-19)")
     p.add_argument("--robo-cash", default=None,
                    help="Robo cash fraction, or an account key: "
                         + ", ".join(ROBO_CASH_BY_ACCOUNT))
@@ -434,7 +479,7 @@ def main(argv: list[str]) -> int:
     rc = ROBO_CASH_FRACTION
     if a.robo_cash:
         rc = ROBO_CASH_BY_ACCOUNT.get(a.robo_cash, None) or Decimal(a.robo_cash)
-    res = compute(scores, confs, Decimal(a.baseline), rc)
+    res = compute(scores, confs, Decimal(a.baseline), rc, Decimal(a.sleeve_share))
     print(render(res, a.asof))
     return 0
 

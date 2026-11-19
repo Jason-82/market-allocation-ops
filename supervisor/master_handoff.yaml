@@ -443,10 +443,17 @@ dca_policy:
       At a score of 80 or higher, the formal action band changes to minimal DCA. Do not extend the
       slow-band formula beyond its domain.
   contribution_math:
-    weekly_baseline: 250000
+    weekly_baseline: 220000
     weekly_baseline_history:
       - {value: 312500, effective_through: "2026-08-14 run", basis: "~$10,000,000 over 32 weeks"}
       - {value: 250000, effective_from: "2026-08-24", basis: "~$8,000,000 over 32 weeks; Jason's instruction"}
+      - {value: 205000, effective_from: "2026-09-18", basis: "5,922,472.69 deployable after the 1,000,000 tax reserve"}
+      - {value: 220000, effective_from: "2026-11-19", basis: "6,304,972.69 deployable incl. 526,000 DEMSX proceeds added to the DCA pool; / 28.6 weeks"}
+    temporary_split_2026_11_19:
+      core: 0.75
+      sleeve: 0.25
+      approved_by: "Jason, 2026-11-19 (option B)"
+      ends_when: "Invested core:sleeve reaches 80:20 portfolio-wide (all four robo accounts are core). Then revert to 0.80/0.20."
     baseline_change_rule: |
       Runs recorded before 2026-08-24 used a $312,500 baseline. Never restate a historical
       run's dollar figures at the current baseline, and never compare a current dollar
