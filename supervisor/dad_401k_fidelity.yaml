@@ -1,0 +1,39 @@
+# DAD'S 401K (FIDELITY) - ETF HALF. Derived figures only; no account numbers or statements.
+# Managed by Jason on his dad's behalf. Separate from Jason's DCA plan: no weekly contributions.
+
+asof: "2026-11-18 close (screenshot supplied by Jason 2026-11-19)"
+scope:
+  in_scope: "ETF half, ~2.58M at Fidelity (no robo available)"
+  out_of_scope: "~2.26M of individual stocks run by an outside advisor (holdings unknown)"
+  instruction: "Jason, 2026-11-19: structure like his own accounts - mostly robo-like core plus a manual sleeve, built manually."
+
+holdings_2026_11_18:
+  total_incl_cash: 2580081.72
+  cash: 8300
+  positions: {FNDX: 373187.85, SCHX: 296028.40, SCHF: 259411.80, FNDF: 237634.16, FNDE: 154577.82, FNDA: 139279.97,
+              QQQM: 124130.52, DEMSX: 119252.46, SCHA: 107769.55, DISV: 101205.39, DFEV: 78441.78, DFIV: 77256.58,
+              SCHE: 67739.94, SPCX: 64464.07, DFSV: 64096.93, SCHC: 60710.76, QUAL: 51499.82, FNDC: 43019.58,
+              DFAC: 38795.67, SCHG: 38302.25, DUHP: 38192.11, SPMO: 36784.31}
+  now: {core_like_pct_of_managed: 70.9, sleeve_like_pct: 21.8, em_pct_of_account: 16.3}
+
+decisions:
+  sell_demsx: "Jason, 2026-11-19: sell all on 2026-11-20 (tax-free inside the 401k)."
+  em_target: "15% of invested managed assets (same target Jason chose for his own portfolio)"
+
+draft_plan_v2_2026_11_19:
+  status: "DRAFT - pending Jason's answers on suitability (age, RMDs, withdrawals, advisor half's bonds/cash), SPCX, DFSV, plan rules."
+  method: |
+    Core weights from Jason Individual's SIP holdings (2026-08-24 snapshot; PRFZ treated as FNDA),
+    REIT funds dropped, FNDE/SCHE scaled so total EM = 15% of invested managed assets with DFEV held
+    as is. Sleeve funds at the hybrid within-sleeve weights x 20%. SPCX kept outside the plan. DFSV
+    and DEMSX sold. Cash kept at ~8,300. No-trade band: skip trades under $5,000.
+  verification: "v1 arithmetic confirmed by blind recompute to the cent; design review led to v2 (no REITs, no DFEV trim, $5k band)."
+  trades_at_2026_11_18_prices:
+    sell: {DEMSX: all, DFSV: all, FNDX: 435, SPMO: 93, QQQM: 42, SCHF: 252}
+    buy: {SCHG: 2183, SCHA: 1100, SCHE: 1462, FNDA: 874, FNDE: 698, SCHX: 456}
+    gross: "sells ~226,931 / buys ~226,619"
+  after: {em_pct_of_invested: 15.0, core_pct: 79.1, sleeve_funds_pct: 20.9, international_pct: 45.8}
+  caveats:
+    - "Template is one drifted snapshot of SIP's most aggressive profile, not Schwab's published targets."
+    - "A manual replica holds no mandatory cash, so it runs ~6pp more equity than an SIP account."
+    - "Recompute share counts on trade day; DEMSX sells at the 2026-11-20 NAV."
