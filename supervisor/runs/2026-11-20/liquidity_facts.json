@@ -1,0 +1,127 @@
+{
+ "retrieved": "2026-11-20",
+ "retrieval_method": "WebSearch result snippets only (federalreserve.gov / newyorkfed.org blocked by policy; WebFetch of news hosts fails DNS from this session); FRED for IORB, target range, RPONTSYD and H.4.1. Secondary-sourced",
+ "operating_period": "2026-11-16 through 2026-12-11",
+ "reserve_management_purchases_planned_B": 0.0,
+ "reinvestment_purchases_planned_B": 14.0,
+ "active_qt": false,
+ "schedule_confirmed_primary": false,
+ "schedule_status": "Secondary only: Newsquawk headline 'NY Fed says the Desk plans around USD 14bln of reinvestment purchases and no reserve management purchases between November 16th and December 11th' (prev period 14.6bln); rallies.ai and ox8.us (2026-11-14) agree on about 14B. RMP paused for a fourth straight period; the mid-November resumption that markets expected did not happen. NY Fed Treasury Securities Operational Details page not reachable. Next schedule expected around the ninth business day of December (about 2026-12-11). Re-checked 2026-11-20: no change or supplementary/intermeeting purchase announcement found; the October minutes (2026-11-18) reportedly kept reserve management purchases at zero with reserves judged ample.",
+ "prior_period": {
+  "operating_period": "2026-10-15 through 2026-11-13",
+  "reserve_management_purchases_planned_B": 0.0,
+  "reinvestment_purchases_planned_B": 14.6
+ },
+ "fomc_2026_10_28": {
+  "confirmed": false,
+  "balance_sheet_or_standing_repo_change": "none found",
+  "implementation_note_found": true,
+  "iorb_pct": 3.9,
+  "iorb_effective": "2026-10-29",
+  "standing_repo_rate_pct": 4.0,
+  "on_rrp_rate_pct": 3.75,
+  "on_rrp_per_counterparty_limit_B": 160,
+  "status": "Implementation note issued 2026-10-28 located by WebSearch (federalreserve.gov monetary20261028a1, snippet only; host blocked): IORB maintained at 3.90% effective 2026-10-29, standing overnight repo at 4.0%, ON RRP at 3.75% with a 160B per-counterparty limit. Rates corroborated by FRED IORB 3.90 through 2026-11-17 and RRPONTSYAWARD 3.75 through 2026-11-16. The Desk's balance-sheet (reinvestment/RMP) directive text was not retrieved, so the balance-sheet parameters remain unconfirmed. Re-checked 2026-11-20: no change; IORB 3.90 and target range 3.75-4.00 on FRED through 2026-11-19; the 2026-10-28 meeting remains the latest FOMC decision (next 2026-12-09). Minutes (2026-11-18) reportedly kept RMP at zero with reserves ample; no balance-sheet or standing-repo parameter change reported."
+ },
+ "sources": [
+  {
+   "fact": "Reinvestment purchases about 14B and no RMP for 2026-11-16..2026-12-11",
+   "url": "https://www.newsquawk.com/headlines/ny-fed-says-the-desk-plans-around-usd-14bln-of-reinvestment-purchases-and-no-reserve-management-purchases-between-november-16th-and-december-11th",
+   "source_date": "2026-11-13 (inferred: ninth business day of November excluding the 2026-11-11 holiday; headline undated in snippet)"
+  },
+  {
+   "fact": "New York Fed desk plans about $14 billion in purchases over next month",
+   "url": "https://rallies.ai/news/new-york-fed-desk-plans-about-14-billion-in-purchases-over-next-month-0cb0ccde4956e73d",
+   "source_date": "2026-11-13 (inferred)"
+  },
+  {
+   "fact": "New York Fed plans $14 billion in Treasury bill reinvestment, down from 14.6B planned for the prior period",
+   "url": "https://ox8.us/2026/11/14/new-york-fed-treasury-bill-reinvestment-november-2026/",
+   "source_date": "2026-11-14"
+  },
+  {
+   "fact": "IORB 3.90 through 2026-11-19 (FRED IORB); target range 3.75-4.00 (FRED DFEDTARL/DFEDTARU)",
+   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=IORB",
+   "source_date": "2026-11-20"
+  },
+  {
+   "fact": "ON RRP award rate 3.75 through 2026-11-16 (FRED RRPONTSYAWARD)",
+   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=RRPONTSYAWARD",
+   "source_date": "2026-11-17"
+  },
+  {
+   "fact": "Prior period 2026-10-15..2026-11-13: about 14.6B reinvestment (prev 15.6B)",
+   "url": "https://www.newsquawk.com/headlines/ny-fed-desk-plans-to-conduct-c-usd-146bln-in-reinvestment-purchases-between-oct-15th-and-nov-13th",
+   "source_date": "2026-10-14 (inferred from companion roic.ai item; headline undated in snippet)"
+  },
+  {
+   "fact": "Authoritative schedule page (not reachable from this environment)",
+   "url": "https://newyorkfed.org/markets/domestic-market-operations/monetary-policy-implementation/treasury-securities/treasury-securities-operational-details",
+   "source_date": "N/A"
+  },
+  {
+   "fact": "Implementation note 2026-10-28: IORB 3.90% effective 2026-10-29; standing repo 4.0%; ON RRP 3.75%, 160B per-counterparty limit",
+   "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a1.htm",
+   "source_date": "2026-10-28",
+   "note": "surfaced by WebSearch 2026-11-05 as snippets only; host blocked, not fetched"
+  },
+  {
+   "fact": "October FOMC minutes: RMP kept at zero, reserves ample (secondary)",
+   "url": "https://stockanalysis.com/news/fed-minutes-october-2026/",
+   "source_date": "2026-11-18"
+  }
+ ],
+ "report_date": "2026-11-20",
+ "schedule_recheck": {
+  "date": "2026-11-20",
+  "result": "no change found to the 2026-11-16..2026-12-11 schedule (0B RMP, about 14B reinvestment); next schedule about 2026-12-11",
+  "confirmed": false,
+  "sources": [
+   {
+    "url": "https://www.newsquawk.com/headlines/ny-fed-says-the-desk-plans-around-usd-14bln-of-reinvestment-purchases-and-no-reserve-management-purchases-between-november-16th-and-december-11th",
+    "date": "2026-11-13 (inferred)"
+   },
+   {
+    "url": "https://tellerwindow.newyorkfed.org/2026/03/31/the-implementation-of-reserve-management-purchases-to-maintain-ample-reserves/",
+    "date": "2026-03-31",
+    "note": "schedule announced around the ninth business day; surfaced by search only, host blocked"
+   }
+  ]
+ },
+ "h41_note": "FRED WRESBAL latest is week ending 2026-11-18 (2,979.7B; H.4.1 published 2026-11-19), up from 2,960.6B (11-11); WALCL 6,741.5B (from 6,758.9B). The next H.4.1 (week ending 2026-11-25) is expected 2026-11-27 or later around the holiday (not verified).",
+ "minutes_2026_11_18_balance_sheet": {
+  "value": "Reserve management purchases kept at zero; reserves judged ample; no standing repo or ON RRP parameter change reported",
+  "confirmed": false,
+  "basis": "secondary summaries of the minutes; balance-sheet section of the primary text not retrieved (federalreserve.gov blocked). Key deliberately not prefixed 'fomc_' so the tool's policy line and confidence check are unchanged.",
+  "sources": [
+   {
+    "url": "https://stockanalysis.com/news/fed-minutes-october-2026/",
+    "date": "2026-11-18"
+   },
+   {
+    "url": "https://www.federalreserve.gov/monetarypolicy/files/fomcminutes20261028.pdf",
+    "date": "2026-11-18",
+    "note": "surfaced by search only; host blocked"
+   }
+  ]
+ },
+ "standing_repo_context": {
+  "value": "Hammack (about 2026-11-18): requiring banks to use the standing repo facility daily to meet reserve needs could ease reluctance to use it. FRED RPONTSYD 0.000B (11-18), 0.001B (11-19): test-size only. No usage spike reported for 2026-11-17..19.",
+  "confirmed": false,
+  "sources": [
+   {
+    "url": "https://www.newsquawk.com/headlines/feds-hammack-says-requiring-banks-to-use-the-standing-repo-facility-daily-to-meet-reserve-needs-could-help-ease-reluctance-to-use-it",
+    "date": "undated in snippet"
+   },
+   {
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=RPONTSYD",
+    "date": "2026-11-20"
+   }
+  ]
+ },
+ "intermeeting_actions_2026_10_29_to_2026_11_20": {
+  "value": "none found",
+  "confirmed": false,
+  "basis": "FRED DFEDTARL/DFEDTARU 3.75/4.00 and IORB 3.90 through 2026-11-19 (run1120/fred); WebSearch 2026-11-20 found no intermeeting FOMC action, statement or facility change. Rates unchanged is FRED-confirmed; absence of a statement is not primary-confirmed."
+ }
+}

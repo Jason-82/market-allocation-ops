@@ -1,6 +1,6 @@
 # CONTINUITY SNAPSHOT — Market Allocation Ops
 #
-# Latest run: 2026-11-17 report (module closes 2026-11-16), third Supervisor self-run.
+# Latest run: 2026-11-20 report (module closes 2026-11-19), fourth Supervisor self-run.
 # STATUS: This is a continuity snapshot, not a substitute for a fresh run.
 # Do NOT describe these figures as current after their stated as-of dates.
 # Their only sanctioned uses are:
@@ -80,6 +80,58 @@ latest_user_supplied_state:
         market_cap_to_GDP: "240.04%"
 
   latest_supervisor_result:
+    asof: "2026-11-20 report date (official closes 2026-11-19; the 2026-11-20 session was open and falling at run time)"
+    run_type: "Fourth Supervisor self-run, during a sharp selloff (SPY -8.1%, QQQ -15.1% from the 2026-10-06 highs at the 11-19 close)."
+    module_asof_dates:
+      QuantRisk: "2026-11-19 close"
+      MacroPolicy: "2026-11-18 Treasury close (H.15 11-19 not posted); labor/CPI 2026-10; PCE 2026-09; GDP Q3 advance; FOMC minutes 2026-11-18"
+      LiquidityCredit: "2026-11-19 close (credit and VIX); BAA10Y 11-18; H.4.1 week ending 11-18; NFCI/STLFSI4 week ending 11-13"
+      SentimentTechnicals: "2026-11-19 close (VIX 28.44 / VIX3M 27.03 from FRED)"
+      ValuationExpectedReturns: "2026-11-19 close (10Y from 2026-11-18)"
+    module_scores: {QuantRisk: 95, MacroPolicy: 43, LiquidityCredit: 30, SentimentTechnicals: 63, ValuationExpectedReturns: 85}
+    module_confidences: {QuantRisk: 81, MacroPolicy: 75, LiquidityCredit: 88, SentimentTechnicals: 94, ValuationExpectedReturns: 73}
+    unrounded_module_scores: {QuantRisk: 94.7100, MacroPolicy: 43.4874, LiquidityCredit: 30.0972, SentimentTechnicals: 62.9090, ValuationExpectedReturns: 85.3541}
+    verification: "All five CONFIRMED by blind re-implementation and adversarial audit; no tool edits."
+    overall_risk_score: 67.4
+    weighted_confidence: 81.7
+    regime: "Slow DCA"
+    raw_multiplier: 0.657500
+    operational_multiplier: 0.65
+    effective_multiplier_individual_5_69_at_75_25: 0.6223
+    weekly_baseline: 220000
+    weekly_split: "75/25 catch-up"
+    amount_deployed: 143000
+    core_amount: 107250
+    sleeve_amount: 35750
+    incremental_holdback: 77000
+    reserve_release: false
+    reserve_release_reason: |
+      Meaningful reset needs the Quant composite below ~0.85 (now 0.9471). Quant-side 0.75x review
+      conditions are met on QQQ (below r0.8 647.45, raw 0.7965, composite <0.95) only on the raw-close
+      treatment - within dividend-adjustment noise - and credit is not cleanly orderly (credit_watch
+      TRUE, HY 3.52%, VIX/VIX3M 1.05 backwardation). Decision deferred to the post-11-20-close refresh.
+    prior_overall_comparison:
+      prior_asof: "2026-11-17 report (closes 2026-11-16)"
+      prior_score: 64.3
+      change: 3.1
+      classification: "Modest deterioration (3-5 points); multiplier 0.70x -> 0.65x"
+      attribution: "Sentiment +1.8 (45 -> 63), Liquidity +1.8 (21 -> 30), Quant 0 (95), Macro -0.2 (44 -> 43), Valuation -0.3 (88 -> 85)."
+    MULTIPLIER_EDGE: |
+      0.65x holds for overall in (66.0, 70.0]; 67.4 sits 1.4 above the 0.70x line and 2.6 below
+      the 0.60x line. No single alternative flips it. The cliff is Liquidity: HY >= 3.65% releases
+      the VIX anti-duplication cap (Liquidity ~41-46) and HY >= ~3.77% with VIX elevated gives
+      overall > 70 -> 0.60x.
+    PROVISIONAL_INTRADAY_SCENARIO_2026_11_20: |
+      At ~13:48 CT (SPY 694.90 -2.93%, QQQ 614.99 -4.66%, VIX 34.14): Quant 94, Sentiment 72
+      (label Panic), Valuation 83, Liquidity 28-46 depending on the 11-20 HY print, Macro 43
+      -> overall 67.3-70.9 -> 0.65x, or 0.60x if HY >= ~3.65%. Never official.
+    METHODOLOGY_QUESTIONS_FOR_JASON:
+      - "Liquidity SIFMA bond-session counting now matters: 30 (official) vs 28 (FRED-print). HY 20d sits exactly on the +25bp overlay threshold."
+      - "Liquidity VIX as-of conflict: moot this run (credit and VIX share 11-19)."
+      - "Macro minutes adjustment +10 (first nonzero; judgement). Score 43 under 0/+5/+10."
+      - "Quant nominal vs dividend-adjusted closes: also decides whether the QQQ 0.75x review condition is met."
+
+  superseded_2026_11_17_result:
     asof: "2026-11-17 report date (official closes 2026-11-16; session of 2026-11-17 open at run time)"
     run_type: "Third Supervisor self-run."
     module_asof_dates:
